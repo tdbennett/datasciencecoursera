@@ -1,8 +1,10 @@
-
+# GettingCleaningData
 
 "Getting and Cleaning Data" course project folder
 
-Files:
+----
+
+# Files
 
 1) this README.md
 2) CodeBook.md

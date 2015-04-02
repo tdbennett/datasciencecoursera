@@ -1,7 +1,7 @@
 # datasciencecoursera
 
-This repository contains projects from the Data Science Specialization offered on Coursera
-from the JHU SOPH
+Contents: projects from the Data Science Specialization 
+offered on Coursera by the JHU SOPH
 
 Work by Tell Bennett
 
@@ -16,7 +16,7 @@ Work by Tell Bennett
 * Reproducible Research
 
 
-
+----
 
 # Directory Structure
 Each course has its own subdirectory
