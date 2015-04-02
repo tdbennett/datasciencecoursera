@@ -9,6 +9,10 @@ Work by Tell Bennett
 
 # Courses
 
+* Data Scientist's Toolbox
+* Getting Cleaning Data
+* R Programming
+* Exploratory Data Analysis
 * Reproducible Research
 
 
