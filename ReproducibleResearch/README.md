@@ -1,7 +1,11 @@
-# ReproducibleResearch
+### ReproducibleResearch
 
 "Reproducible Research" course project folder
 
 ----
 
-# Files
+### Files
+
+* Lectures
+* LocalOnly
+* WorkforRepo
