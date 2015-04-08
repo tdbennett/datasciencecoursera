@@ -1,0 +1,37 @@
+---
+title: "MarkdownLectureNotes"
+author: "TDB"
+date: "Tuesday, April 07, 2015"
+output: html_document
+---
+
+https://help.github.com/articles/github-flavored-markdown/ ## very useful
+    ## github has some special markdown stuff - some of which PD has already shown us
+
+
+*italics*  ## need two spaces to carriage return
+
+
+**bold**
+
+## secondary heading
+### tertiary heading
+
+- first item
+- second item
+- third item
+
+1. first item
+2. first item
+3. first item
+
+[RStudio link](http://www.rstudio.com)
+
+I spend so much time reading [R bloggers][1] and [Simply Statistics][2]!
+
+[1]: http://www.r-bloggers.com/  "R bloggers"
+[2]: http://simplystatistics.org/  "Simply Statistics"
+
+
+
+
