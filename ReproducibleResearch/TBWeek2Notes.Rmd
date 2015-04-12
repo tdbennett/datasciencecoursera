@@ -1,0 +1,93 @@
+
+TB knitr lecture notes
+======================
+
+## Global options
+
+Could set global options:
+```{r setoptions, echo=FALSE}
+# opts_chunk$set(echo = FALSE, results = "hide")
+```
+
+## Other common options for a given chunk
+
+don't forget the two spaces to carriage return  
+
+results = "asis" or "hide"  
+fig.height = numeric  
+fig.width = numeric  
+echo = TRUE or FALSE  
+
+cache=TRUE (for a given chunk)
+    * it will have to run it the first time
+    * if the data or code change, it will re-run
+
+## Introduction
+
+if not using Rstudio:
+```{r firstchunk}
+#library(knitr)
+#setwd(<working directory>)
+#knit2html("blah.Rmd")
+#browseURL("blah.html")
+```
+
+Knitr takes the .Rmd and makes a markdown file - see lecture notes
+
+```
+numerical output goes in a box like this in the markdown file
+```
+
+
+```{r scatterplot, echo=FALSE, fig.height=4}
+plot(cars)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r computetime, echo=FALSE}
+time <- format(Sys.time(), "%a %b %d %X %Y")
+rand <- rnorm(1)
+```
+
+The current time is `r time`.  My favorite number is `r rand`. 
+
+
+## Incorporating Graphics
+
+Let's first simulate some data
+```{r simulate data, echo=TRUE}
+x <- rnorm(100); y <- x + rnorm(100, sd = 0.5)
+```
+Here is a scatterplot of those data
+```{r scatterplot2, fig.height=5}
+par(mar = c(5,4,1,1), las=1)
+plot(x,y, main = "My Simulated Data")
+```
+
+## Making Tables with xtable
+
+```{r fitmodel}
+library(datasets)
+data(airquality)
+fit <- lm(Ozone ~ Wind + Temp + Solar.R, data = airquality)
+```
+Here is a table of regression coefficients.
+```{r xtable, results="asis"}
+library(xtable)
+xt <- xtable(summary(fit))
+print(xt, type="html")
+```
+
+## Trying out stargazer instead - not working yet
+
+```{r stargazer}
+library(stargazer)
+stargazer(fit, title="Table") ### TB this gets you Latex
+
+stargazer(fit, type="html", title="Table") ### this gets you raw html
+# print(st)
+```
+
+## Caching computations
+
