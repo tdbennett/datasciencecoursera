@@ -4,13 +4,47 @@ author: "Tell Bennett"
 date: "Monday, April 20, 2015"
 output: html_document
 ---
+    Title: Your document should have a title that briefly summarizes your data analysis
+
+    Synopsis: Immediately after the title, there should be a synopsis which describes and summarizes your analysis in at most 10 complete sentences.
 
 ### Synopsis
 
+10 sentences or less.
 
 
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+### Data Processing
+
+```{r options, echo = FALSE}
+options(dplyr.max_print = 10)
+options(dplyr.min_print =  5)
+```
+
+1) Loading packages
+
+```{r loadpackages, echo = FALSE}
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+```
+
+2) Loading the raw data
+
+```{r dataload}
+url <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+
+
+## don't forget time
+```
+
+3) Reference documentation
+Put in a hyperlink to https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2Fpd01016005curr.pdf
+
+FAQ location 
+
+### Results
+
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
@@ -24,4 +58,3 @@ You can also embed plots, for example:
 plot(cars)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
