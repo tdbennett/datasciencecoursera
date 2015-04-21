@@ -17,6 +17,7 @@ output: html_document
 ### Data Processing
 
 ```{r options, echo = FALSE}
+setwd("./ReproducibleResearch/Proj2/")
 options(dplyr.max_print = 10)
 options(dplyr.min_print =  5)
 ```
@@ -47,10 +48,23 @@ downloadtime
 stormdata <- read.table("stormdata.bz2", sep = ",", header=TRUE, stringsAsFactors=FALSE)
 ```
 
-# unzip the zipped file
-unzip("./projdata/phonedataset.zip", exdir = "projdata")
-list.files("./projdata")
-list.files("./projdata/UCI HAR Dataset")
+4) Exploring the data
+```{r exploredata}
+dim(stormdata)
+str(stormdata)
+glimpse(stormdata)
+summary(stormdata)
+```
+
+5) Extract and clean necessary variables
+```{r clean1}
+stormdata <- transmute(stormdata,
+        state = as.factor(STATE),
+        begin = parse_date_time(paste(BGN_DATE, BGN_TIME), orders = "mdyhm", 
+                                tz = TIME_ZONE),
+        deaths = FATALITIES,
+        injuries = INJURIES,
+        id = REFNUM)
 ```
 
 3) Reference documentation
