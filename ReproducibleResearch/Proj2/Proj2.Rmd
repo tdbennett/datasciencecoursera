@@ -32,6 +32,9 @@ library(ggplot2)
 2) Loading the raw data
 
 ```{r dataload}
+
+need download.file()
+
 url <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
 
 
