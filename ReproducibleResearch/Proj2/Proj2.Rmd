@@ -31,14 +31,26 @@ library(ggplot2)
 
 2) Loading the raw data
 
-```{r dataload}
-
-need download.file()
-
+```{r dataload, cache=TRUE}
+## Download the data 
 url <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+download.file(url, destfile = "stormdata.bz2")
 
+## Document the download time
+downloadtime <- date()
+downloadtime
+## [1] "Tue Apr 21 15:30:23 2015"
+```
 
-## don't forget time
+3) Read the data into R
+```{r dataread, cache=TRUE}
+stormdata <- read.table("stormdata.bz2", sep = ",", header=TRUE, stringsAsFactors=FALSE)
+```
+
+# unzip the zipped file
+unzip("./projdata/phonedataset.zip", exdir = "projdata")
+list.files("./projdata")
+list.files("./projdata/UCI HAR Dataset")
 ```
 
 3) Reference documentation
