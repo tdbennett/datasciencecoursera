@@ -84,15 +84,18 @@ stormdata <- stormdata[,c(1:9,12:13)]
 
 rm(stormdata2)
 rm(stormdata3)
-
-
 ```
 
 
-Further exploratory analysis - frequency of events over time
+Further exploratory analysis - event variable
 ```{r explore2}
+table(stormdata$evtype, useNA = "ifany")
+##    HAIL   TORNADO TSTM WIND 
+      171       363       466 
 
-
+byyear <- stormdata %>%
+    group_by(year(enddate),evtype) %>%
+    summarize(count = sum())
 ```
 
 
