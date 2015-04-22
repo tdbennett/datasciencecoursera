@@ -87,15 +87,23 @@ rm(stormdata3)
 ```
 
 
-Further exploratory analysis - event variable
-```{r explore2}
+Further exploratory analysis - events over time
+```{r eventsovertime}
 table(stormdata$evtype, useNA = "ifany")
 ##    HAIL   TORNADO TSTM WIND 
       171       363       466 
 
 byyear <- stormdata %>%
-    group_by(year(enddate),evtype) %>%
-    summarize(count = sum())
+    group_by(year = year(begindate),evtype) %>%
+    summarize(count = n())
+
+ggplot(byyear, aes(x=year, y=count)) +
+    geom_line(group = evtype, colour = group)
+
+
+qplot(x=year, y=count, data=byyear, group=evtype, geom="line")
+
+    
 ```
 
 
