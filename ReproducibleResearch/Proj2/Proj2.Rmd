@@ -28,6 +28,7 @@ options(dplyr.min_print =  5)
 library(dplyr)
 library(lubridate)
 library(ggplot2)
+library(stringr)
 ```
 
 2) Loading the raw data
@@ -45,30 +46,46 @@ downloadtime
 
 3) Read the data into R
 ```{r dataread, cache=TRUE}
-stormdata <- read.table("stormdata.bz2", sep = ",", header=TRUE, stringsAsFactors=FALSE)
+stormdata <- read.table("stormdata.bz2", sep = ",", header=TRUE, stringsAsFactors=FALSE, nrows = 1000)
 ```
 
 4) Exploring the raw data to facilitate cleaning
 ```{r explore1}
 dim(stormdata)
-str(stormdata)
 glimpse(stormdata)
 summary(stormdata)
 ```
 
-5) Extract and clean necessary variables for the public health analysis
+5) Extract the necessary variables
 ```{r clean1}
 stormdata <- transmute(stormdata,
         id = REFNUM,
         evtype = as.factor(EVTYPE),
         state = as.factor(STATE),
         begindate = BGN_DATE,
-        begintime = BGN_TIME,
         enddate = END_DATE,
-        endtime = END_TIME,
-        tz = TIME_ZONE,
         deaths = FATALITIES,
-        injuries = INJURIES)
+        injuries = INJURIES,
+        propdmg = PROPDMG,
+        propdmgexp = PROPDMGEXP,
+        cropdmg = CROPDMG,
+        cropdmgexp = CROPDMGEXP)
+
+stormdata2 <- str_split_fixed(stormdata$begindate, pattern = " ", 2)
+stormdata3 <- str_split_fixed(stormdata$enddate, " ", 2)
+
+stormdata <- cbind(stormdata, stormdata2[,1],stormdata3[,1])
+
+stormdata <- stormdata %>%
+        select(-begindate,-enddate) %>%
+        mutate(begindate = mdy(stormdata2[,1]), enddate = stormdata3[,1]) 
+
+stormdata <- stormdata[,c(1:9,12:13)]
+
+rm(stormdata2)
+rm(stormdata3)
+
+
 ```
 
 
@@ -83,9 +100,13 @@ Further exploratory analysis - frequency of events over time
 Put in a hyperlink to https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2Fpd01016005curr.pdf
 
 FAQ location 
+https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2FNCDC%20Storm%20Events-FAQ%20Page.pdf
 
-parse_date_time(paste(BGN_DATE, BGN_TIME), orders = "mdyhm", 
-                                tz = TIME_ZONE),
+Years for each event type
+http://www.ncdc.noaa.gov/stormevents/details.jsp
+
+Field details
+ftp://ftp.ncdc.noaa.gov/pub/data/swdi/stormevents/csvfiles/Storm-Data-Export-Format.docx
 
 ### Results
 
