@@ -29,6 +29,9 @@ library(dplyr)
 library(lubridate)
 library(ggplot2)
 library(stringr)
+library(datasets)
+library(htmlTable)
+library(gridExtra)
 ```
 
 2) Loading the raw data
@@ -41,12 +44,12 @@ download.file(url, destfile = "stormdata.bz2")
 ## Document the download time
 downloadtime <- date()
 downloadtime
-## [1] "Tue Apr 21 15:30:23 2015"
+## [1] "Thu Apr 23 13:38:11 2015"
 ```
 
-3) Read the data into R
+3) Read the data into R (100000 rows only right now)
 ```{r dataread, cache=TRUE}
-stormdata <- read.table("stormdata.bz2", sep = ",", header=TRUE, stringsAsFactors=FALSE, nrows = 1000)
+stormdata <- read.table("stormdata.bz2", sep = ",", header=TRUE, stringsAsFactors=FALSE, nrows = 100000)
 ```
 
 4) Exploring the raw data to facilitate cleaning
@@ -56,12 +59,12 @@ glimpse(stormdata)
 summary(stormdata)
 ```
 
-5) Extract the necessary variables
-```{r clean1}
+5) Extract and Clean the necessary variables
+```{r clean1, cache=TRUE}
 stormdata <- transmute(stormdata,
         id = REFNUM,
         evtype = as.factor(EVTYPE),
-        state = as.factor(STATE),
+        state.abb = as.factor(STATE),
         begindate = BGN_DATE,
         enddate = END_DATE,
         deaths = FATALITIES,
@@ -84,27 +87,176 @@ stormdata <- stormdata[,c(1:9,12:13)]
 
 rm(stormdata2)
 rm(stormdata3)
+
+table(stormdata$propdmgexp, useNA = "always")
+stormdata$propdmgexp[stormdata$propdmgexp==""] <- 1
+stormdata$propdmgexp[stormdata$propdmgexp=="K"] <- 1000
+stormdata$propdmgexp[stormdata$propdmgexp=="M"] <- 1000000
+table(stormdata$propdmgexp, useNA = "always")
+
+table(stormdata$cropdmgexp, useNA = "always")
+stormdata$propdmgexp[stormdata$cropdmgexp==""] <- 1
+stormdata$propdmgexp[stormdata$cropdmgexp=="K"] <- 1000
+stormdata$propdmgexp[stormdata$cropdmgexp=="M"] <- 1000000
+table(stormdata$cropdmgexp, useNA = "always")
+
+stormdata <- stormdata %>%
+    mutate(propdmg = (propdmg*as.numeric(propdmgexp)), cropdmg = (cropdmg*as.numeric(cropdmgexp)))
+
+fivenum(stormdata$propdmg)
+fivenum(stormdata$cropdmg)
 ```
 
 
 Further exploratory analysis - events over time
 ```{r eventsovertime}
-table(stormdata$evtype, useNA = "ifany")
-##    HAIL   TORNADO TSTM WIND 
-      171       363       466 
+table(stormdata$evtype, useNA = "always")
 
 byyear <- stormdata %>%
-    group_by(year = year(begindate),evtype) %>%
+    group_by(year2 = year(begindate),evtype) %>%
     summarize(count = n())
 
-ggplot(byyear, aes(x=year, y=count)) +
-    geom_line(group = evtype, colour = group)
-
-
-qplot(x=year, y=count, data=byyear, group=evtype, geom="line")
-
-    
+ggplot(byyear, aes(x=year2, y=count)) +
+    geom_line(aes(colour = evtype, linetype=evtype), size=1.2) +
+    theme_bw(base_size = 12, base_family= "") +
+    xlab("Year") +
+    ylab("Number of Events") +
+    ggtitle("Storm Events over Time") +
+    labs(colour = "Event Type", linetype = "Event Type")
 ```
+
+
+Further exploratory analyses - bringing in U.S. Division/Region variables and analyzing events by state
+```{r eventsbystate}
+data(state)
+state.abb
+state.region
+state.division
+
+stateinfo <- data.frame(state.abb,state.division)
+
+stormdata <- left_join(stormdata,stateinfo)
+
+## Checking the join
+nrow(stormdata)
+table(stormdata$state.abb, useNA = "always")
+table(stormdata$state.division, useNA = "always")
+
+bystate <- stormdata %>%
+    group_by(state.abb, evtype) %>%
+    summarize(count = n())
+```
+
+```{r eventsbystateplot}
+ggplot(stormdata, aes(state.abb, fill=evtype)) +
+    geom_bar() + 
+    theme_bw(base_size = 12, base_family= "") +
+    ylab("Number of Events") +
+    xlab("State") +
+    ggtitle("Storm Events by State") +
+    labs(fill = "Event Type")
+```
+
+```{r eventsbyregionplot}
+ggplot(stormdata, aes(state.division, fill=evtype)) +
+    geom_bar() + coord_flip() +
+    theme_bw(base_size = 12, base_family= "") +
+    ylab("Number of Events") +
+    xlab("Region") +
+    ggtitle("Storm Events by U.S. Region") +
+    labs(fill = "Event Type")
+```
+
+
+Health impacts - Overall, by Event Type
+```{r pophealth table}
+byevtype <- stormdata %>%
+    group_by(evtype) %>%
+    summarize(Injuries = sum(injuries), Deaths = sum(deaths)) %>%
+    mutate(EventType = c("Hail","Tornado","Thunderstorm Wind")) %>%
+    select(EventType,Injuries,Deaths)
+
+htmlTable(byevtype,
+          rnames = FALSE,
+          caption = "<a name=table01></a> <b> Table 1 </b> Injuries and Deaths by Event Type")
+```
+
+
+Health impacts scaled to state population, by event Type
+```{r pophealthstate}
+state.name
+state.x77
+
+statex77 <- as.data.frame(state.x77, stringsAsFactors=FALSE)
+stateinfo2 <- cbind(state.abb,statex77)
+
+stormdata <- left_join(stormdata,stateinfo2)
+
+## Checking the join
+nrow(stormdata)
+table(stormdata$state.abb, useNA = "always")
+table(stormdata$state.division, useNA = "always")
+
+## Removing some unnecessary variables
+stormdata <- stormdata %>%
+    select(-Illiteracy, -Murder, -contains("Grad"), -Frost, -Area)
+
+byevtypestatepop <- stormdata %>%
+    group_by(state.abb, evtype) %>%
+    summarize(injper1000 = (sum(injuries)/1000), deathsper1000 = (sum(deaths)/1000))
+
+byevtypedivpop <- stormdata %>%
+    group_by(state.division, evtype) %>%
+    summarize(injper1000 = (sum(injuries)/1000), deathsper1000 = (sum(deaths)/1000))
+```
+
+
+Bar graphs of Population Health Impact by Event for each State
+```{r eventsbystateplot}
+plot1 <- ggplot(byevtypestatepop, aes(x = state.abb, y = injper1000, fill = evtype)) +
+    geom_bar(stat = "identity") +
+    theme_bw(base_size = 12, base_family= "") +
+    ylab("Injuries per 1000 population") +
+    xlab("State") +
+    ggtitle("Injuries per 1000 by U.S. State") +
+    labs(fill = "Event Type")
+
+plot2 <- ggplot(byevtypestatepop, aes(x = state.abb, y = deathsper1000, fill = evtype)) +
+    geom_bar(stat = "identity") +
+    theme_bw(base_size = 12, base_family= "") +
+    ylab("Deaths per 1000 population") +
+    xlab("State") +
+    ggtitle("Deaths per 1000 by U.S. State") +
+    labs(fill = "Event Type")
+
+grid.arrange(plot1, plot2)
+```
+
+
+Economic Impact Overall, by Event Type
+```{r econimpact}
+byevtype2 <- stormdata %>%
+    group_by(evtype) %>%
+    summarize(
+        AvePropertyDamage = round(mean(propdmg, na.rm=TRUE), 0), 
+        AveCropDamage = mean(cropdmg, na.rm=TRUE),
+        minpropdmg = min(propdmg),
+        maxpropdmg = max(propdmg)) %>%
+    mutate(EventType = c("Hail","Tornado","Thunderstorm Wind")) %>%
+    select(EventType,AvePropertyDamage)
+```
+It looks like only tornados have property damage estimates.  None of the records thus far have crop damage estimates.
+
+```{r econimpact table}
+htmlTable(byevtype2,
+          rnames = FALSE,
+          header = c("Event Type", "Average Property Damage ($)"),
+          caption = "<a name=table02></a> <b> Table 2 </b> Property Damage by Event Type")
+```
+
+
+
+reference: https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/state.html
 
 
 3) Reference documentation
