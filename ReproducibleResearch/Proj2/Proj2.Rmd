@@ -49,7 +49,7 @@ downloadtime
 
 3) Read the data into R (100000 rows only right now)
 ```{r dataread, cache=TRUE}
-stormdata <- read.table("stormdata.bz2", sep = ",", header=TRUE, stringsAsFactors=FALSE, nrows = 100000)
+stormdata <- read.table("stormdata.bz2", sep = ",", header=TRUE, stringsAsFactors=FALSE)
 ```
 
 4) Exploring the raw data to facilitate cleaning
@@ -59,12 +59,12 @@ glimpse(stormdata)
 summary(stormdata)
 ```
 
-5) Extract and Clean the necessary variables
-```{r clean1, cache=TRUE}
+5) Extract the necessary variables
+```{r extract, cache=TRUE}
 stormdata <- transmute(stormdata,
         id = REFNUM,
-        evtype = as.factor(EVTYPE),
-        state.abb = as.factor(STATE),
+        evtype = EVTYPE,
+        state.abb = STATE,
         begindate = BGN_DATE,
         enddate = END_DATE,
         deaths = FATALITIES,
@@ -73,7 +73,42 @@ stormdata <- transmute(stormdata,
         propdmgexp = PROPDMGEXP,
         cropdmg = CROPDMG,
         cropdmgexp = CROPDMGEXP)
+```
 
+6) Check for duplicate events
+```{r checking for duplicate events}
+summarize(stormdata, unique=n_distinct(id))
+```
+No duplicate events found.
+
+
+7) Clean the state field.  Because the question relates to the U.S., I excluded rows describing events that did not have
+a two-letter code for one of the 50 U.S. states
+```{r cleanstate}
+table(stormdata$state.abb, useNA = "always")
+
+data(state)
+state.abb
+
+state2 <- state.abb
+
+semi_join(stormdata,state2)
+
+badstates <- c("GM", "GU", "XX", "LC", "LE", "LH", "LM", "LO", "LS", "MH", "PH", "PK", "PM", "PR", "PZ", "SL", "ST", "VI")
+stormdata <- stormdata %>%
+    filter(state.abb - %in% badstates)
+
+stormdata$state.abb[stormdata$state.abb=="XX"] <- NA
+stormdata$state.abb[stormdata$state.abb=="SL"] <- NA
+stormdata$state.abb[stormdata$state.abb=="ST"] <- NA
+```
+  
+
+
+7) Clean the event type field
+
+7) Clean the dates
+```{r cleandates}
 stormdata2 <- str_split_fixed(stormdata$begindate, pattern = " ", 2)
 stormdata3 <- str_split_fixed(stormdata$enddate, " ", 2)
 
@@ -87,17 +122,42 @@ stormdata <- stormdata[,c(1:9,12:13)]
 
 rm(stormdata2)
 rm(stormdata3)
+```
+
+
+8) Clean the property and crop damage fields
+```{r cleanpropertycrop}
+
+sum(is.na(stormdata$propdmg))
+## No missing propdmg
+
+sum(is.na(stormdata$cropdmg))
+## No missing propdmg
 
 table(stormdata$propdmgexp, useNA = "always")
+stormdata$propdmgexp[stormdata$propdmgexp=="0"] <- 1
 stormdata$propdmgexp[stormdata$propdmgexp==""] <- 1
+stormdata$propdmgexp[stormdata$propdmgexp=="-"] <- 1
+stormdata$propdmgexp[stormdata$propdmgexp=="+"] <- 1
+stormdata$propdmgexp[stormdata$propdmgexp=="?"] <- 1
+stormdata$propdmgexp[stormdata$propdmgexp=="h"] <- 1000
+stormdata$propdmgexp[stormdata$propdmgexp=="H"] <- 1000
 stormdata$propdmgexp[stormdata$propdmgexp=="K"] <- 1000
 stormdata$propdmgexp[stormdata$propdmgexp=="M"] <- 1000000
+stormdata$propdmgexp[stormdata$propdmgexp=="m"] <- 1000000
+stormdata$propdmgexp[stormdata$propdmgexp=="B"] <- 1000000000
 table(stormdata$propdmgexp, useNA = "always")
+## clean
 
 table(stormdata$cropdmgexp, useNA = "always")
-stormdata$propdmgexp[stormdata$cropdmgexp==""] <- 1
-stormdata$propdmgexp[stormdata$cropdmgexp=="K"] <- 1000
-stormdata$propdmgexp[stormdata$cropdmgexp=="M"] <- 1000000
+stormdata$cropdmgexp[stormdata$cropdmgexp=="0"] <- 1
+stormdata$cropdmgexp[stormdata$cropdmgexp==""] <- 1
+stormdata$cropdmgexp[stormdata$cropdmgexp=="?"] <- 1
+stormdata$cropdmgexp[stormdata$cropdmgexp=="K"] <- 1000
+stormdata$cropdmgexp[stormdata$cropdmgexp=="k"] <- 1000
+stormdata$cropdmgexp[stormdata$cropdmgexp=="M"] <- 1000000
+stormdata$cropdmgexp[stormdata$cropdmgexp=="m"] <- 1000000
+stormdata$cropdmgexp[stormdata$cropdmgexp=="B"] <- 1000000000
 table(stormdata$cropdmgexp, useNA = "always")
 
 stormdata <- stormdata %>%
@@ -106,6 +166,7 @@ stormdata <- stormdata %>%
 fivenum(stormdata$propdmg)
 fivenum(stormdata$cropdmg)
 ```
+I assume in the above "Damage Exponent" fields that '0' means no multiplier (i.e. multiplier = 1), that 'h' and 'H' mean 10^2, that 'k' and 'K' mean 10^3, that 'm' and 'M' mean 10^6, and that 'B' means 10^9.  Other symbols were assumed to be typos and set to 1.  Other numbers were left as is.
 
 
 Further exploratory analysis - events over time
@@ -212,7 +273,7 @@ byevtypedivpop <- stormdata %>%
 
 
 Bar graphs of Population Health Impact by Event for each State
-```{r eventsbystateplot}
+```{r healthbystateplot}
 plot1 <- ggplot(byevtypestatepop, aes(x = state.abb, y = injper1000, fill = evtype)) +
     geom_bar(stat = "identity") +
     theme_bw(base_size = 12, base_family= "") +
@@ -272,17 +333,4 @@ Field details
 ftp://ftp.ncdc.noaa.gov/pub/data/swdi/stormevents/csvfiles/Storm-Data-Export-Format.docx
 
 ### Results
-
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r}
-summary(cars)
-```
-
-You can also embed plots, for example:
-
-```{r, echo=FALSE}
-plot(cars)
-```
 
