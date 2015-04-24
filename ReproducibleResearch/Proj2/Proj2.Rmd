@@ -39,7 +39,6 @@ library(ggplot2)
 library(stringr)
 library(datasets)
 library(htmlTable)
-library(gridExtra)
 ```
 
   
