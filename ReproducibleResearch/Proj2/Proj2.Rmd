@@ -17,7 +17,7 @@ output: html_document
 ### Data Processing
 
 ```{r options, echo = FALSE}
-setwd("./ReproducibleResearch/Proj2/")
+#setwd("./ReproducibleResearch/Proj2/")
 options(dplyr.max_print = 10)
 options(dplyr.min_print =  5)
 ```
@@ -39,7 +39,7 @@ library(gridExtra)
 ```{r dataload, cache=TRUE}
 ## Download the data 
 url <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
-download.file(url, destfile = "stormdata.bz2")
+download.file(url, destfile = "stormdata.bz2", method="curl")
 
 ## Document the download time
 downloadtime <- date()
@@ -47,7 +47,7 @@ downloadtime
 ## [1] "Thu Apr 23 13:38:11 2015"
 ```
 
-3) Read the data into R (100000 rows only right now)
+3) Read the data into R
 ```{r dataread, cache=TRUE}
 stormdata <- read.table("stormdata.bz2", sep = ",", header=TRUE, stringsAsFactors=FALSE)
 ```
@@ -98,7 +98,7 @@ table(stormdata$state.abb, useNA = "always")
 ```
 
 7) Clean the dates
-```{r cleandates}
+```{r cleandates, cache=TRUE}
 stormdata2 <- str_split_fixed(stormdata$begindate, pattern = " ", 2)
 stormdata3 <- str_split_fixed(stormdata$enddate, " ", 2)
 
@@ -121,7 +121,7 @@ sum(is.na(stormdata$propdmg))
 ## No missing propdmg
 
 sum(is.na(stormdata$cropdmg))
-## No missing propdmg
+## No missing cropdmg
 
 table(stormdata$propdmgexp, useNA = "always")
 stormdata$propdmgexp[stormdata$propdmgexp=="0"] <- 1
@@ -186,55 +186,252 @@ byev <- stormdata %>%
 stormdata <- inner_join(stormdata,byev)
 ```
 
-More cleaning of the event type field
-```{r morecleaneventtype}
-dog_df$type_of_dog <- revalue (dog_df$type_of_dog, c("WELSH CORGI"="CORGI", "PEMBROKE CORGI"="CORGI","THAT DOG THE QUEEN HAS"="CORGI")
+Cleaning and categorizing the event type field
+```{r categorizeeventtype, cache-TRUE}
 
-
-
+### Winter storm
 winterdata <- stormdata %>%
     mutate(winter = grepl("wint", evtype),
            snow = grepl("snow", evtype),
            cold = grepl("cold", evtype),
-           blizz = grepl("blizzard", evtype)) %>%
-    filter(winter==T | snow==T | cold==T | blizz==T) %>%
-    mutate(evtype = "winter") %>%
-    select(-winter,-snow,-cold,-blizz)
+           blizz = grepl("blizzard", evtype),
+           freeze = grepl("freez", evtype),
+           ice = grepl("ice", evtype),
+           icy = grepl("icy", evtype),
+           chill = grepl("chill", evtype),
+           sleet = grepl("sleet", evtype),
+           avala = grepl("avala", evtype)) %>%
+    filter(winter==T | snow==T | cold==T | blizz==T | ice==T | freeze==T | icy==T | chill==T | sleet==T | avala==T) %>%
+    mutate(evtype2 = "winter") %>%
+    select(id,evtype2)
 
-
-
+stormdata <- left_join(stormdata,winterdata)
+stormdata$evtype[stormdata$evtype2=="winter"] <- "Winter"
 table(stormdata$evtype, useNA = "always")
+stormdata <- select(stormdata, -evtype2)
+rm(winterdata)
 
-           search = c(grep("wint"), grep("snow"), grep("cold"), grep("blizzard")),
-            replace = c("winter", "winter", "winter", "winter"))
+### Fire
+firedata <- stormdata %>%
+    mutate(fire = grepl("fire", evtype)) %>%
+    filter(fire==T) %>%
+    mutate(evtype2 = "fire") %>%
+    select(id,evtype2)
+
+stormdata <- left_join(stormdata,firedata)
+stormdata$evtype[stormdata$evtype2=="fire"] <- "Fire"
+table(stormdata$evtype, useNA = "always")
+stormdata <- select(stormdata, -evtype2)
+rm(firedata)
+
+
+### Heat
+heatdata <- stormdata %>%
+    mutate(heat = grepl("heat", evtype),
+           warm = grepl("warm", evtype)) %>%
+    filter(heat==T | warm==T) %>%
+    mutate(evtype2 = "heat") %>%
+    select(id,evtype2)
+
+stormdata <- left_join(stormdata,heatdata)
+stormdata$evtype[stormdata$evtype2=="heat"] <- "Heat"
+table(stormdata$evtype, useNA = "always")
+stormdata <- select(stormdata, -evtype2)
+rm(heatdata)
+
+
+### Flood
+flooddata <- stormdata %>%
+    mutate(flood = grepl("flood", evtype),
+           fld = grepl("fld", evtype)) %>%
+    filter(flood==T | fld==T) %>%
+    mutate(evtype2 = "flood") %>%
+    select(id,evtype2)
+
+stormdata <- left_join(stormdata,flooddata)
+stormdata$evtype[stormdata$evtype2=="flood"] <- "Flood"
+table(stormdata$evtype, useNA = "always")
+stormdata <- select(stormdata, -evtype2)
+rm(flooddata)
+
+
+### Wind
+winddata <- stormdata %>%
+    mutate(wind = grepl("wind", evtype)) %>%
+    filter(wind==T) %>%
+    mutate(evtype2 = "wind") %>%
+    select(id,evtype2)
+
+stormdata <- left_join(stormdata,winddata)
+stormdata$evtype[stormdata$evtype2=="wind"] <- "Wind"
+table(stormdata$evtype, useNA = "always")
+stormdata <- select(stormdata, -evtype2)
+rm(winddata)
+
+
+### Hail
+haildata <- stormdata %>%
+    mutate(hail = grepl("hail", evtype)) %>%
+    filter(hail==T) %>%
+    mutate(evtype2 = "hail") %>%
+    select(id,evtype2)
+
+stormdata <- left_join(stormdata,haildata)
+stormdata$evtype[stormdata$evtype2=="hail"] <- "Hail"
+table(stormdata$evtype, useNA = "always")
+stormdata <- select(stormdata, -evtype2)
+rm(haildata)
+
+
+### Fog
+fogdata <- stormdata %>%
+    mutate(fog = grepl("fog", evtype)) %>%
+    filter(fog==T) %>%
+    mutate(evtype2 = "fog") %>%
+    select(id,evtype2)
+
+stormdata <- left_join(stormdata,fogdata)
+stormdata$evtype[stormdata$evtype2=="fog"] <- "Fog"
+table(stormdata$evtype, useNA = "always")
+stormdata <- select(stormdata, -evtype2)
+rm(fogdata)
+
+
+### Lightning
+lightningdata <- stormdata %>%
+    mutate(lightning = grepl("lig", evtype)) %>%
+    filter(lightning==T) %>%
+    mutate(evtype2 = "lightning") %>%
+    select(id,evtype2)
+
+stormdata <- left_join(stormdata,lightningdata)
+stormdata$evtype[stormdata$evtype2=="lightning"] <- "Lightning"
+table(stormdata$evtype, useNA = "always")
+stormdata <- select(stormdata, -evtype2)
+rm(lightningdata)
+
+
+### Tornado
+tornadodata <- stormdata %>%
+    mutate(tornado = grepl("torn", evtype),
+           spout = grepl("waterspout", evtype),
+           funnel = grepl("funnel", evtype)) %>%
+    filter(tornado==T | spout==T | funnel==T) %>%
+    mutate(evtype2 = "tornado") %>%
+    select(id,evtype2)
+
+stormdata <- left_join(stormdata,tornadodata)
+stormdata$evtype[stormdata$evtype2=="tornado"] <- "Tornado"
+table(stormdata$evtype, useNA = "always")
+stormdata <- select(stormdata, -evtype2)
+rm(tornadodata)
+
+
+### Rainstorm
+raindata <- stormdata %>%
+    mutate(rain = grepl("rain", evtype),
+           storm = grepl("storm", evtype),
+           tstm = grepl("tstm", evtype),
+           precip = grepl("precip", evtype)) %>%
+    filter(rain==T | storm==T | tstm==T | precip==T) %>%
+    mutate(evtype2 = "Rainstorm") %>%
+    select(id,evtype2)
+
+stormdata <- left_join(stormdata,raindata)
+stormdata$evtype[stormdata$evtype2=="Rainstorm"] <- "Rainstorm"
+table(stormdata$evtype, useNA = "always")
+stormdata <- select(stormdata, -evtype2)
+rm(raindata)
+
+
+### Tropical Storms/Hurricanes
+tropdata <- stormdata %>%
+    mutate(trop = grepl("trop", evtype),
+           hurr = grepl("hurr", evtype),
+           tsu = grepl("tsu", evtype)) %>%
+    filter(trop==T | hurr==T | tsu==T) %>%
+    mutate(evtype2 = "Trop/Hurr") %>%
+    select(id,evtype2)
+
+stormdata <- left_join(stormdata,tropdata)
+stormdata$evtype[stormdata$evtype2=="Trop/Hurr"] <- "Trop/Hurr"
+table(stormdata$evtype, useNA = "always")
+stormdata <- select(stormdata, -evtype2)
+rm(tropdata)
+
+
+### Drought
+droughtdata <- stormdata %>%
+    mutate(drought = grepl("drought", evtype),
+           dry = grepl("dry", evtype)) %>%
+    filter(drought==T | dry==T) %>%
+    mutate(evtype2 = "drought") %>%
+    select(id,evtype2)
+
+stormdata <- left_join(stormdata,droughtdata)
+stormdata$evtype[stormdata$evtype2=="drought"] <- "Drought"
+table(stormdata$evtype, useNA = "always")
+stormdata <- select(stormdata, -evtype2)
+rm(droughtdata)
+
+
+### Land or Mudslide
+landdata <- stormdata %>%
+    mutate(land = grepl("land", evtype),
+           mud = grepl("mud", evtype)) %>%
+    filter(land==T | mud==T) %>%
+    mutate(evtype2 = "Land- or Mudslide") %>%
+    select(id,evtype2)
+
+stormdata <- left_join(stormdata,landdata)
+stormdata$evtype[stormdata$evtype2=="Land- or Mudslide"] <- "Land- or Mudslide"
+table(stormdata$evtype, useNA = "always")
+stormdata <- select(stormdata, -evtype2)
+rm(landdata)
             
-            search = c("tstm", "tropical", "tunder", "tsunami"),
-            replace = c("tstorm", "tstorm", "tstorm", "tstorm") %>%
 
-            search = c("drought"),
-            replace = c("dry") %>%
-               
-            search = c("drought"),
-            replace = c("dry") %>%
-               
-           tstorm = str_detect(evtype, ),
-           wind = str_detect(evtype, "wind"),
-           hail = str_detect(evtype, "hail"),
-           ice = str_detect(evtype, "ice"),
-           fire = str_detect(evtype, "fire"),
-           dry = str_detect(evtype, "drought" | "dry"),
-           fog = str_detect(evtype, "fog"),
-           tornado = str_detect(evtype, "tornado" | "torndao")) 
-        
+### Coastal Events
+coastdata <- stormdata %>%
+    mutate(sea = grepl("sea", evtype),
+           rip = grepl("rip", evtype),
+           surf = grepl("surf", evtype),
+           wave = grepl("wave", evtype),
+           tide = grepl("tide", evtype),
+           coast = grepl("coast", evtype)) %>%
+    filter(sea==T | rip==T | surf==T | wave==T | tide==T | coast==T) %>%
+    mutate(evtype2 = "Coastal Events") %>%
+    select(id,evtype2)
+
+stormdata <- left_join(stormdata,coastdata)
+stormdata$evtype[stormdata$evtype2=="Coastal Events"] <- "Coastal Events"
+table(stormdata$evtype, useNA = "always")
+stormdata <- select(stormdata, -evtype2)
+rm(coastdata)
+
+
+
+### All other categories have <200 events (max 149, dust devil)
+filter <- stormdata %>%
+    group_by(evtype) %>%
+    summarize(count = n()) %>%
+    filter(count >200)
+
+### Dropping the events that have <200 records
+stormdata <- semi_join(stormdata, filter)
+
+### Checking
+stormdata %>%
+    group_by(evtype) %>%
+    summarize(count = n())
+
+### Cleaning up
+rm(filter)
+rm(byev)
 ```
 
 
 
-
-
-
-
-Further exploratory analysis - events over time
+Exploratory analysis - events over time
 ```{r eventsovertime}
 table(stormdata$evtype, useNA = "always")
 
@@ -243,7 +440,7 @@ byyear <- stormdata %>%
     summarize(count = n())
 
 ggplot(byyear, aes(x=year2, y=count)) +
-    geom_line(aes(colour = evtype, linetype=evtype), size=1.2) +
+    geom_line(aes(colour = evtype, linetype=evtype), size=1) +
     theme_bw(base_size = 12, base_family= "") +
     xlab("Year") +
     ylab("Number of Events") +
@@ -254,8 +451,6 @@ ggplot(byyear, aes(x=year2, y=count)) +
 
 Further exploratory analyses - bringing in U.S. Division/Region variables and analyzing events by state
 ```{r eventsbystate}
-data(state)
-state.abb
 state.region
 state.division
 
@@ -273,38 +468,51 @@ bystate <- stormdata %>%
     summarize(count = n())
 ```
 
-```{r eventsbystateplot}
-ggplot(stormdata, aes(state.abb, fill=evtype)) +
+```{r eventsbystateandregionplot}
+plot1 <- ggplot(stormdata, aes(state.abb, fill=evtype)) +
     geom_bar() + 
     theme_bw(base_size = 12, base_family= "") +
     ylab("Number of Events") +
     xlab("State") +
     ggtitle("Storm Events by State") +
-    labs(fill = "Event Type")
-```
+    labs(fill = "Event Type") +
+    theme(axis.title.x = element_text(face="bold"), axis.title.y = element_text(face="bold"),
+          axis.text.x = element_text(angle=90), title = element_text(face="bold"))
 
-```{r eventsbyregionplot}
-ggplot(stormdata, aes(state.division, fill=evtype)) +
+plot2 <- ggplot(stormdata, aes(state.division, fill=evtype)) +
     geom_bar() + coord_flip() +
     theme_bw(base_size = 12, base_family= "") +
     ylab("Number of Events") +
     xlab("Region") +
     ggtitle("Storm Events by U.S. Region") +
-    labs(fill = "Event Type")
+    labs(fill = "Event Type") +
+    theme(axis.title.x = element_text(face="bold"), axis.title.y = element_text(face="bold"),
+          title = element_text(face="bold"), axis.text.x = element_text(angle=90))
+
+grid.arrange(plot1,plot2)
+
+rm(plot1)
+rm(plot2)
 ```
 
 
 Health impacts - Overall, by Event Type
 ```{r pophealth table}
 byevtype <- stormdata %>%
-    group_by(evtype) %>%
-    summarize(Injuries = sum(injuries), Deaths = sum(deaths)) %>%
-    mutate(EventType = c("Hail","Tornado","Thunderstorm Wind")) %>%
-    select(EventType,Injuries,Deaths)
+    rename(EventType = evtype) %>%
+    group_by(EventType) %>%
+    summarize(Count = n(),
+              Injuries = sum(injuries), 
+              Deaths = sum(deaths),
+              InjuriesPerEvent = signif((Injuries/Count), digits=2),
+              DeathsPerEvent = signif((Deaths/Count), digits=2))
+byevtype
 
 htmlTable(byevtype,
           rnames = FALSE,
-          caption = "<a name=table01></a> <b> Table 1 </b> Injuries and Deaths by Event Type")
+          caption = "<a name=table01></a> <b> Table 1 </b> Injuries and Deaths by Event Type",
+          align = "lccccc",
+          align.header = "lccccc")
 ```
 
 
@@ -345,7 +553,9 @@ plot1 <- ggplot(byevtypestatepop, aes(x = state.abb, y = injper1000, fill = evty
     ylab("Injuries per 1000 population") +
     xlab("State") +
     ggtitle("Injuries per 1000 by U.S. State") +
-    labs(fill = "Event Type")
+    labs(fill = "Event Type") +
+    theme(axis.title.x = element_text(face="bold"), axis.title.y = element_text(face="bold"),
+          axis.text.x = element_text(angle=90), title = element_text(face="bold"))
 
 plot2 <- ggplot(byevtypestatepop, aes(x = state.abb, y = deathsper1000, fill = evtype)) +
     geom_bar(stat = "identity") +
@@ -353,31 +563,41 @@ plot2 <- ggplot(byevtypestatepop, aes(x = state.abb, y = deathsper1000, fill = e
     ylab("Deaths per 1000 population") +
     xlab("State") +
     ggtitle("Deaths per 1000 by U.S. State") +
-    labs(fill = "Event Type")
+    labs(fill = "Event Type") +
+    theme(axis.title.x = element_text(face="bold"), axis.title.y = element_text(face="bold"),
+          axis.text.x = element_text(angle=90), title = element_text(face="bold"))
 
 grid.arrange(plot1, plot2)
+
+### Cleaning up
+rm(plot1)
+rm(plot2)
+rm(byevtypestatepop)
 ```
 
 
 Economic Impact Overall, by Event Type
 ```{r econimpact}
 byevtype2 <- stormdata %>%
-    group_by(evtype) %>%
+    rename(EventType = evtype) %>%
+    group_by(EventType) %>%
     summarize(
         AvePropertyDamage = round(mean(propdmg, na.rm=TRUE), 0), 
-        AveCropDamage = mean(cropdmg, na.rm=TRUE),
+        AveCropDamage = round(mean(cropdmg, na.rm=TRUE), 0),
         minpropdmg = min(propdmg),
         maxpropdmg = max(propdmg)) %>%
-    mutate(EventType = c("Hail","Tornado","Thunderstorm Wind")) %>%
-    select(EventType,AvePropertyDamage)
+    select(EventType, AvePropertyDamage, AveCropDamage)
+byevtype2
 ```
 It looks like only tornados have property damage estimates.  None of the records thus far have crop damage estimates.
 
 ```{r econimpact table}
 htmlTable(byevtype2,
           rnames = FALSE,
-          header = c("Event Type", "Average Property Damage ($)"),
-          caption = "<a name=table02></a> <b> Table 2 </b> Property Damage by Event Type")
+          header = c("Event Type", "Mean Property Damage ($)", "Mean Crop Damage ($)"),
+          caption = "<a name=table02></a> <b> Table 2 </b> Property Damage by Event Type",
+          align = "lcc",
+          align.header = "lcc")
 ```
 
 
