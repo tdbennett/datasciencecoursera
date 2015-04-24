@@ -82,8 +82,7 @@ summarize(stormdata, unique=n_distinct(id))
 No duplicate events found.
 
 
-7) Clean the state field.  Because the question relates to the U.S., I excluded rows describing events that did not have
-a two-letter code for one of the 50 U.S. states
+7) Clean the state field.  Because the question relates to the U.S., I excluded rows describing events that did not have a two-letter code for one of the 50 U.S. states
 ```{r cleanstate}
 table(stormdata$state.abb, useNA = "always")
 
@@ -92,20 +91,11 @@ state.abb
 
 state2 <- state.abb
 
-semi_join(stormdata,state2)
-
-badstates <- c("GM", "GU", "XX", "LC", "LE", "LH", "LM", "LO", "LS", "MH", "PH", "PK", "PM", "PR", "PZ", "SL", "ST", "VI")
 stormdata <- stormdata %>%
-    filter(state.abb - %in% badstates)
+    filter(state.abb %in% state2)
 
-stormdata$state.abb[stormdata$state.abb=="XX"] <- NA
-stormdata$state.abb[stormdata$state.abb=="SL"] <- NA
-stormdata$state.abb[stormdata$state.abb=="ST"] <- NA
+table(stormdata$state.abb, useNA = "always")
 ```
-  
-
-
-7) Clean the event type field
 
 7) Clean the dates
 ```{r cleandates}
@@ -123,7 +113,6 @@ stormdata <- stormdata[,c(1:9,12:13)]
 rm(stormdata2)
 rm(stormdata3)
 ```
-
 
 8) Clean the property and crop damage fields
 ```{r cleanpropertycrop}
@@ -167,6 +156,82 @@ fivenum(stormdata$propdmg)
 fivenum(stormdata$cropdmg)
 ```
 I assume in the above "Damage Exponent" fields that '0' means no multiplier (i.e. multiplier = 1), that 'h' and 'H' mean 10^2, that 'k' and 'K' mean 10^3, that 'm' and 'M' mean 10^6, and that 'B' means 10^9.  Other symbols were assumed to be typos and set to 1.  Other numbers were left as is.
+
+
+8) Initial cleaning of the event type field
+```{r cleanevtype}
+table(stormdata$evtype, useNA = "always")
+summarize(stormdata, unique=n_distinct(evtype))
+### 952
+
+### Changing all evtype strings to lower case and removing spaces at the beginning and end of strings
+stormdata <- stormdata %>%
+    mutate(evtype = tolower(str_trim(evtype)))
+summarize(stormdata, unique=n_distinct(evtype))
+### 860
+```
+
+9) Removing event types not associated with either health or property impact
+```{r byev}
+byev <- stormdata %>%
+    group_by(evtype) %>%
+    summarize(propimpact = sum(propdmg), 
+              cropimpact = sum(cropdmg),
+              injimpact = sum(injuries),
+              deathimpact = sum(deaths),
+              impact = sum(propimpact, cropimpact, injimpact, deathimpact)) %>%
+    filter(impact > 0) %>%
+    select(evtype)
+
+stormdata <- inner_join(stormdata,byev)
+```
+
+More cleaning of the event type field
+```{r morecleaneventtype}
+dog_df$type_of_dog <- revalue (dog_df$type_of_dog, c("WELSH CORGI"="CORGI", "PEMBROKE CORGI"="CORGI","THAT DOG THE QUEEN HAS"="CORGI")
+
+
+
+winterdata <- stormdata %>%
+    mutate(winter = grepl("wint", evtype),
+           snow = grepl("snow", evtype),
+           cold = grepl("cold", evtype),
+           blizz = grepl("blizzard", evtype)) %>%
+    filter(winter==T | snow==T | cold==T | blizz==T) %>%
+    mutate(evtype = "winter") %>%
+    select(-winter,-snow,-cold,-blizz)
+
+
+
+table(stormdata$evtype, useNA = "always")
+
+           search = c(grep("wint"), grep("snow"), grep("cold"), grep("blizzard")),
+            replace = c("winter", "winter", "winter", "winter"))
+            
+            search = c("tstm", "tropical", "tunder", "tsunami"),
+            replace = c("tstorm", "tstorm", "tstorm", "tstorm") %>%
+
+            search = c("drought"),
+            replace = c("dry") %>%
+               
+            search = c("drought"),
+            replace = c("dry") %>%
+               
+           tstorm = str_detect(evtype, ),
+           wind = str_detect(evtype, "wind"),
+           hail = str_detect(evtype, "hail"),
+           ice = str_detect(evtype, "ice"),
+           fire = str_detect(evtype, "fire"),
+           dry = str_detect(evtype, "drought" | "dry"),
+           fog = str_detect(evtype, "fog"),
+           tornado = str_detect(evtype, "tornado" | "torndao")) 
+        
+```
+
+
+
+
+
 
 
 Further exploratory analysis - events over time
