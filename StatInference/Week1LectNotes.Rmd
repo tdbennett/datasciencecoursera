@@ -1,6 +1,9 @@
+---
+output: html_document
+---
 ## Notes from B Caffo week 1 lectures
 
-### Probability
+### Probability Intro
 
 prob'y refers to population, i.e. fundamental property of a die being rolled
 
@@ -16,3 +19,74 @@ prob'y refers to population, i.e. fundamental property of a die being rolled
 Consequences:
 
 1) For any 2 events, the Pr that at least one occurs is the sum of the 2 Pr's minus the intersection
+
+
+
+### Probability mass functions - for discrete
+
+Random variable = numerical outcome of an experiment (TB: anything, BMI, a factor, count, whatever)
+
+A PMF evaluated at a value corresponds to the Pr that a random variable takes that value  
+
+A function p that is a PMF must always be >= 0, and the sum of all possible values must = 1
+
+1) $p(x) \geq 0$ for all $x$
+2) $\sum_{x} p(x) = 1$
+
+    
+Most famous PMF: Bernoulli, results of coin flip
+
+$$ p(x) = (1/2)^{x} (1/2)^{1-x} \mbox{ for }x = 0,1 $$ for x = 0,1 of fair coin
+    
+$$ p(x) = \theta^{x} (1 - \theta)^{1-x} \mbox{ for }x = 0,1 $$ for x = 0,1 of unfair coin
+    
+    we don't know theta, so we use our data to estimate it
+
+
+
+### Probability density functions - for continuous
+        
+1) Same rule: A function p that is a PDF must always be >= 0, and the total area under the PDF must = 1
+
+2) PDF applies to population, not the data (will use the data to estimate the population PDF)
+
+
+Proportion of help calls that get addressed in a random day by a help line is 
+
+$$ f(x) = \left{\begin{array}{ll} 2 x & \mbox{ for } 1 > x > 0 \ 0 & \mbox{ otherwise} \end{array} \right. $$
+
+```{r pdf1}
+x <- c(-0.5, 0, 1, 1, 1.5); y <- c( 0, 0, 2, 0, 0)
+plot(x, y, lwd = 3, frame = FALSE, type = "l")
+
+pbeta(0.75,2,1) ### beta distribution, pbeta gives Pr of being <0.75 from a beta distribution
+```
+
+
+Cumulative Distribution Function (CDF) of a random variable X returns the Pr that the random variable is <= to the value x (discrete or continuous)
+
+$$ F(x) = P(X \leq x) $$
+
+p[density name] in R returns the CDF (e.g. pbeta)
+
+
+Survival function is 1 - CDF
+
+$$ S(x) = P(X > x) $$
+    
+
+
+
+### Quantiles (still in PDF lecture)
+
+$\alpha^{th}$ quantile of a distribution with distribution function $F$ is the point $x_\alpha$ so that 
+
+$$ F(x_\alpha) = \alpha $$
+
+qbeta(0.5, 2, 1) ### q[function name] gives population quantiles
+
+
+### Linking Sample to a Population
+
+estimand = target of estimation = population quantity (e.g. population median)
+estimator = quantity in the sample (e.g. sample median)
