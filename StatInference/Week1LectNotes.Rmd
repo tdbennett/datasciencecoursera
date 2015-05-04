@@ -1,0 +1,18 @@
+## Notes from B Caffo week 1 lectures
+
+### Probability
+
+prob'y refers to population, i.e. fundamental property of a die being rolled
+
+3 rules are Kolmogorov's - see LittleInferenceBook, page 7
+
+1) Pr gets a number between 0 and 1
+
+2) Pr if something occurs is 1, if nothing, 0
+
+3) If two events are mutually exclusive, the Pr is the sum of the prob's
+
+
+Consequences:
+
+1) For any 2 events, the Pr that at least one occurs is the sum of the 2 Pr's minus the intersection
