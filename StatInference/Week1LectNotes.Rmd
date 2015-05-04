@@ -138,3 +138,24 @@ Using Bayes rule, we have $$ P(D ~|~ +) = \frac{P(+~|~D)P(D)}{P(+~|~D)P(D) + P(+
 
 * Therefore $$ \frac{P(D ~|~ +)}{P(D^c ~|~ +)} = \frac{P(+~|~D)}{P(+~|~D^c)}\times \frac{P(D)}{P(D^c)} $$ ie $$ \mbox{post-test odds of }D = DLR_+\times\mbox{pre-test odds of }D $$
 * Similarly, $DLR_-$ relates the decrease in the odds of the disease after a negative test result to the odds of disease prior to the test.
+
+
+
+### Independence
+
+
+* Two events $A$ and $B$ are independent if $$P(A \cap B) = P(A)P(B)$$
+* Equivalently if $P(A ~|~ B) = P(A)$
+
+* TB: Key issue is you can multiply prob'ies of independent events _only_, not correlated ones
+    
+* Two random variables, $X$ and $Y$ are independent if for any two sets $A$ and $B$ $$P([X \in A] \cap [Y \in B]) = P(X\in A)P(Y\in B)$$
+
+If $A$ is independent of $B$ then
+    * $A^c$ is independent of $B$
+    * $A$ is independent of $B^c$
+    * $A^c$ is independent of $B^c$
+    
+IID random variables = Independent, Identically Distributed
+    * Ind: statistically unrelated
+    * ID: drawn from the same population distribution
