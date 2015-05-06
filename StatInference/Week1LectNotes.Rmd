@@ -143,7 +143,6 @@ Using Bayes rule, we have $$ P(D ~|~ +) = \frac{P(+~|~D)P(D)}{P(+~|~D)P(D) + P(+
 
 ### Independence
 
-
 * Two events $A$ and $B$ are independent if $$P(A \cap B) = P(A)P(B)$$
 * Equivalently if $P(A ~|~ B) = P(A)$
 
@@ -159,3 +158,60 @@ If $A$ is independent of $B$ then
 IID random variables = Independent, Identically Distributed
     * Ind: statistically unrelated
     * ID: drawn from the same population distribution
+
+
+### Expected Values
+
+* Expected values are properties of distributions
+* The average of random var's is a random var and its associated distr'n has an expected value
+        * the center of mass of this distr'n is the same as that of the original distr'n
+        
+Therefore, the center of the population distr'n of the sample mean is that same as the population mean
+    * this is the definition of an _unbiased_ estimator
+    
+Example: 1000 standard normals, take the mean _vs_ 10 standard normals, take the mean, repeat that many times
+    * the above two things will tend to have the same mean, but different variance
+        * bigger groups (e.g. 30 standard normals at a time) > tighter variance around the mean
+    * TB: is this the standard error of the mean vs SD issue?
+
+We use mass and density functions (or their estimates) to talk about samples from populations
+    * The mean is the center of mass - he uses the picture example for both discrete and continuous
+    * variance, how spread out the mass is
+
+sample mean is est. of population mean
+
+* The sample mean estimates this population mean - TB look at the equation below
+* The center of mass of the data is the empirical mean $$ \bar X = \sum_{i=1}^n x_i p(x_i) $$ where $p(x_i) = 1/n$
+
+
+sample var is est. of population var
+sample SD is est. of population SD
+
+```{r centermass, message=FALSE}
+library(UsingR); data(galton); library(ggplot2)
+library(reshape2)
+longGalton <- melt(galton, measure.vars = c("child", "parent"))
+g <- ggplot(longGalton, aes(x = value)) + 
+    geom_histogram(aes(y = ..density..,  fill = variable), binwidth=1, colour = "black") + 
+    geom_density(size = 2)
+g <- g + facet_grid(. ~ variable)
+g
+```
+
+```{r centermass manipulate, eval=FALSE}
+library(manipulate)
+myHist <- function(mu){
+    g <- ggplot(galton, aes(x = child))
+    g <- g + geom_histogram(fill = "salmon", 
+      binwidth=1, aes(y = ..density..), colour = "black")
+    g <- g + geom_density(size = 2)
+    g <- g + geom_vline(xintercept = mu, size = 2)
+    mse <- round(mean((galton$child - mu)^2), 3)  
+    g <- g + labs(title = paste('mu = ', mu, ' MSE = ', mse))
+    g
+}
+manipulate(myHist(mu), mu = slider(62, 74, step = 0.5))
+```
+
+
+
