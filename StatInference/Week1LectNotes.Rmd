@@ -103,6 +103,15 @@ estimator = quantity in the sample (e.g. sample median)
 * Notice that if $A$ and $B$ are independent (defined later in the lecture), then $$ P(A ~|~ B) = \frac{P(A) P(B)}{P(B)} = P(A) $$
 
 
+### Mutually exclusive and not mutually exclusive
+
+$$ \begin{eqnarray} A_1 & = & {\mbox{Person has sleep apnea}} \ A_2 & = & {\mbox{Person has RLS}} \end{eqnarray} $$
+
+Then
+
+$$ \begin{eqnarray} P(A_1 \cup A_2 ) & = & P(A_1) + P(A_2) - P(A_1 \cap A_2) \ & = & 0.13 - \mbox{Probability of having both} \end{eqnarray} $$ Likely, some fraction of the population has both.
+
+
 
 ### Bayes' Rule
 
