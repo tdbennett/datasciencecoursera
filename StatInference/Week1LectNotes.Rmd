@@ -64,7 +64,7 @@ pbeta(0.75,2,1) ### beta distribution, pbeta gives Pr of being <0.75 from a beta
 ```
 
 
-* Cumulative Distribution Function (CDF) of a random variable X returns the Pr that the random variable is <= to the value x (discrete or continuous)
+### Cumulative Distribution Function (CDF) of a random variable X returns the Pr that the random variable is <= to the value x (discrete or continuous)
 
 $$ F(x) = P(X \leq x) $$
 
