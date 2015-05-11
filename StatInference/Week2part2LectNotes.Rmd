@@ -1,0 +1,8 @@
+---
+output: html_document
+---
+## Notes from B Caffo week 2 part 2 lectures (Asymptotics, last 3 lectures)
+
+### Intro to Variability
+
+```
