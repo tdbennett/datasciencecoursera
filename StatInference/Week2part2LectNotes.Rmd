@@ -176,7 +176,7 @@ round(1 / sqrt(10 ^ (1 : 6)), 3)
 
 `r binom.test(56, 100)$conf.int` ### TB - this is the exact binomial CI, doesn't rely on CLT
 
-### Simulation
+### Simulation - Wald CI
 
 ```{r simbinom, cache=TRUE}
 n <- 20
@@ -189,21 +189,23 @@ coverage <- sapply(pvals, function(p){
   mean(ll < p & ul > p)
 })
 
-ggplot(data.frame(pvals, coverage), aes(x = pvals, y = coverage)) + geom_line(size = 2) + geom_hline(yintercept = 0.95) + ylim(.75, 1.0)
+ggplot(data.frame(pvals, coverage), aes(x = pvals, y = coverage)) + geom_line(size = 2) + geom_hline(yintercept = 0.95) + ylim(.75, 1.0) ### this picture shows that the CLT (and Wald) is most accurate at p=0.5, much less at edges
 ```
 
 ### What's happening?
 
 * $n$ isn't large enough for the CLT to be applicable for many of the values of $p$
 * Quick fix, form the interval with $$ \frac{X + 2}{n + 4} $$
-* (Add two successes and failures, Agresti/Coull interval)
+* (Add two successes and failures, __Agresti/Coull__ interval)
 
 ### Simulation
 
-* First let's show that coverage gets better with $n$
+* First let's show that coverage (of the true prob) gets better with $n$
 
 ```{r sim20}
-n <- 100; pvals <- seq(.1, .9, by = .05); nosim <- 1000
+n <- 100 ### rather than 20
+pvals <- seq(.1, .9, by = .05)
+nosim <- 1000
 coverage2 <- sapply(pvals, function(p){
   phats <- rbinom(nosim, prob = p, size = n) / n
   ll <- phats - qnorm(.975) * sqrt(phats * (1 - phats) / n)
@@ -216,9 +218,9 @@ coverage2 <- sapply(pvals, function(p){
 ggplot(data.frame(pvals, coverage), aes(x = pvals, y = coverage2)) + geom_line(size = 2) + geom_hline(yintercept = 0.95)+ ylim(.75, 1.0)
 ```
 
-### Simulation
+### Simulation - Agresti/Coull, he says use this one all the time
 
-* Now let's look at $n=20$ but adding 2 successes and failures
+* Now let's look at $n=20$ but adding 2 successes and failures (Agresti/Coull interval from 2 slides up)
 
 ```{r sim21}
 n <- 20; pvals <- seq(.1, .9, by = .05); nosim <- 1000
@@ -248,7 +250,7 @@ ggplot(data.frame(pvals, coverage), aes(x = pvals, y = coverage)) + geom_line(si
 ```{r poisson}
 x <- 5; t <- 94.32; lambda <- x / t
 round(lambda + c(-1, 1) * qnorm(.975) * sqrt(lambda / t), 3)
-poisson.test(x, T = 94.32)$conf
+poisson.test(x, T = 94.32)$conf ### this is an exact Poisson interval - guarantees 95% coverage
 ```
 
 ### Simulating the Poisson coverage rate
