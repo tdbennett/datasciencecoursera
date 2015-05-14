@@ -24,10 +24,11 @@ output: html_document
 * (If we replaced $s$ by $\sigma$ the statistic would be exactly standard normal)
 * Interval is $\bar X \pm t_{n-1} S/\sqrt{n}$ where $t_{n-1}$ is the relevant quantile
 
-### Code for manipulate
+### Code for manipulate - not run
 
-```{r tplot}
-library(ggplot2); library(manipulate)
+```{r tplot, eval=FALSE}
+library(ggplot2)
+library(manipulate)
 k <- 1000
 xvals <- seq(-5, 5, length = k)
 myplot <- function(df){
@@ -42,9 +43,9 @@ manipulate(myplot(mu), mu = slider(1, 20, step = 1))
 ```
 
 
-### Easier to see
+### Easier to see - not run
 
-```{r quantilesofthet}
+```{r quantilesofthet, eval=FALSE}
 pvals <- seq(.5, .99, by = .01)
 myplot2 <- function(df){
   d <- data.frame(n= qnorm(pvals),t=qt(pvals, df),
@@ -99,4 +100,93 @@ mn + c(-1, 1) * qt(.975, n-1) * s / sqrt(n)
 t.test(difference)
 t.test(g2, g1, paired = TRUE)
 t.test(extra ~ I(relevel(group, 2)), paired = TRUE, data = sleep)
+```
+
+
+### The results
+
+(After a little formatting)
+
+```{r moresleep}
+rbind(
+mn + c(-1, 1) * qt(.975, n-1) * s / sqrt(n),
+as.vector(t.test(difference)$conf.int),
+as.vector(t.test(g2, g1, paired = TRUE)$conf.int),
+as.vector(t.test(extra ~ I(relevel(group, 2)), paired = TRUE, data = sleep)$conf.int)
+)
+```
+
+### Independent group $t$ confidence intervals
+
+* Suppose that we want to compare the mean blood pressure between two groups in a randomized trial; those who received the treatment to those who received a placebo
+
+* We cannot use the paired t test because the groups are independent and may have different sample sizes
+* We now present methods for comparing independent groups
+
+### Confidence interval
+
+* Therefore a $(1 - \alpha)\times 100\%$ confidence interval for $\mu_y - \mu_x$ is $$ \bar Y - \bar X \pm t_{n_x + n_y - 2, 1 - \alpha/2}S_p\left(\frac{1}{n_x} + \frac{1}{n_y}\right)^{1/2} $$
+
+* The pooled variance estimator is $$S_p^2 = {(n_x - 1) S_x^2 + (n_y - 1) S_y^2}/(n_x + n_y - 2)$$
+* Remember this interval is assuming a constant variance across the two groups
+* If there is some doubt, assume a different variance per group, which we will discuss later
+
+### Example
+Based on Rosner, Fundamentals of Biostatistics
+
+(Really a very good reference book)
+
+* Comparing SBP for 8 oral contraceptive users versus 21 controls
+* $\bar X_{OC} = 132.86$ mmHg with $s_{OC} = 15.34$ mmHg
+* $\bar X_{C} = 127.44$ mmHg with $s_{C} = 18.23$ mmHg
+* Pooled variance estimate
+
+`r sp <- sqrt((7 * 15.34^2 + 20 * 18.23^2) / (8 + 21 - 2))`
+`r 132.86 - 127.44 + c(-1, 1) * qt(.975, 27) * sp * (1 / 8 + 1 / 21)^.5`
+
+### Mistakenly treating the sleep data as grouped
+
+```{r more}
+n1 <- length(g1); n2 <- length(g2)
+sp <- sqrt( ((n1 - 1) * sd(x1)^2 + (n2-1) * sd(x2)^2) / (n1 + n2-2))
+md <- mean(g2) - mean(g1)
+semd <- sp * sqrt(1 / n1 + 1/n2)
+rbind(
+md + c(-1, 1) * qt(.975, n1 + n2 - 2) * semd,  
+t.test(g2, g1, paired = FALSE, var.equal = TRUE)$conf,
+t.test(g2, g1, paired = TRUE)$conf
+)
+```
+
+### Grouped versus independent
+
+```{r grpind}
+library(ggplot2)
+g <- ggplot(sleep, aes(x = group, y = extra, group = factor(ID)))
+g <- g + geom_line(size = 1, aes(colour = ID)) + geom_point(size =10, pch = 21, fill = "salmon", alpha = .5)
+g
+```
+
+### ChickWeight data in R
+
+```{r chickwt} 
+library(datasets) 
+data(ChickWeight) 
+library(reshape2)
+##define weight gain or loss
+wideCW <- dcast(ChickWeight, Diet + Chick ~ Time, value.var = "weight")
+names(wideCW)[-(1 : 2)] <- paste("time", names(wideCW)[-(1 : 2)], sep = "")
+library(dplyr)
+wideCW <- mutate(wideCW,
+  gain = time21 - time0
+)
+
+### Plotting the raw data
+
+g <- ggplot(ChickWeight, aes(x = Time, y = weight, 
+                             colour = Diet, group = Chick))
+g <- g + geom_line()
+g <- g + stat_summary(aes(group = 1), geom = "line", fun.y = mean, size = 1, col = "black")
+g <- g + facet_grid(. ~ Diet)
+g
 ```
