@@ -42,6 +42,7 @@ g
 
 * The Central Limit Theorem (CLT) is one of the most important theorems in statistics
 * For our purposes, the CLT states that the distribution of averages of iid variables (properly normalized) becomes that of a standard normal as the sample size increases
+* TB: it doesn't matter what the underlying distribution is
 * The CLT applies in an endless variety of settings
 
 * The result is that $$\frac{\bar X_n - \mu}{\sigma / \sqrt{n}}= \frac{\sqrt n (\bar X_n - \mu)}{\sigma} = \frac{\mbox{Estimate} - \mbox{Mean of estimate}}{\mbox{Std. Err. of estimate}}$$ has a distribution like that of a standard normal for large $n$.

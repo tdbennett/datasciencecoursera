@@ -1,0 +1,59 @@
+---
+title: "Comparison of the Exponential Distribution with the Central Limit Theorem"
+author: "Tell Bennett"
+date: "Monday, May 18, 2015"
+output: pdf_document
+---
+
+Synopsis
+--------
+
+2-3 sentences.
+
+
+Global Options and Loading Packages
+-----------------------------------
+
+```{r options, echo = FALSE}
+options(dplyr.max_print = 10)
+options(dplyr.min_print =  5)
+```
+
+```{r loadpackages, echo = TRUE, results="hide", message=FALSE}
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(stringr)
+library(datasets)
+library(htmlTable)
+```
+
+```{r hist}
+hist(runif(1000))
+
+means <- NULL
+
+for (i in 1:1000) {
+    means = c(means, mean(runif(40)))
+}
+
+hist(means)
+```
+
+```{r lln1}
+n <- 10000
+means <- cumsum(rnorm(n)) / (1 : n)
+library(ggplot2)
+g <- ggplot(data.frame(x = 1 : n, y = means), aes(x = x, y = y)) 
+g <- g + geom_hline(yintercept = 0) + geom_line(size = 2) 
+g <- g + labs(x = "Number of obs", y = "Cumulative mean")
+g
+```
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
