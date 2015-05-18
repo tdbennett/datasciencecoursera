@@ -11,39 +11,44 @@ Synopsis
 2-3 sentences.
 
 
-Global Options and Loading Packages
+Loading Packages
 -----------------------------------
 
-```{r options, echo = FALSE}
-options(dplyr.max_print = 10)
-options(dplyr.min_print =  5)
-```
-
 ```{r loadpackages, echo = TRUE, results="hide", message=FALSE}
-library(dplyr)
-library(lubridate)
 library(ggplot2)
-library(stringr)
-library(datasets)
-library(htmlTable)
 ```
 
-```{r hist}
-hist(runif(1000))
 
-means <- NULL
 
-for (i in 1:1000) {
-    means = c(means, mean(runif(40)))
-}
-
-hist(means)
+```{r exp}
+x <- (rexp(40, 0.2))
+hist(x, breaks=30)
+mean(x)
+var(x)
 ```
 
+#### Simulation - Exponential
+
+Poisson(4) have variance 4; means of random samples of n Poisson(4) have sd 2/n−−√
+
+```{r moresim3}
+nosim <- 1000
+n <- 40
+z <- matrix(rexp(nosim * n, 0.2), nrow = nosim)
+zmeans <- apply(z, 1, mean)
+mean(zmeans)
+var(zmeans)
+hist(zmeans)
+
+```
+
+
+
+#### This is the figure that asymptotically goes to the mean of 0
 ```{r lln1}
 n <- 10000
-means <- cumsum(rnorm(n)) / (1 : n)
-library(ggplot2)
+means <- cumsum(rnorm(n)) / (1 : n) ### makes the cumulative average of n random normals
+
 g <- ggplot(data.frame(x = 1 : n, y = means), aes(x = x, y = y)) 
 g <- g + geom_hline(yintercept = 0) + geom_line(size = 2) 
 g <- g + labs(x = "Number of obs", y = "Cumulative mean")
@@ -51,7 +56,7 @@ g
 ```
 
 
-
+#### This is the figure comparing 10, 20, and 30 random normals - CLT, getting narrower
 ```{r moresim}
 nosim <- 10000; 
 dat <- data.frame(
@@ -63,6 +68,8 @@ dat <- data.frame(
 ggplot(dat, aes(x = x, fill = n)) + geom_density(size = 2, alpha = .2) + geom_vline(xintercept = 1, size = 2) 
 ```
 
+
+#### Side by side figure of 10, 20, 30
 ```{r moresim2}
 dat <- data.frame(
   x = c(apply(matrix(sample(1 : 6, nosim * 10, replace = TRUE), 
@@ -78,15 +85,4 @@ g <- g + geom_vline(xintercept = 2.92, size = 2)
 g + facet_grid(. ~ size)
 ```
 
-Simulation example - Poisson
 
-Poisson(4) have variance 4; means of random samples of n Poisson(4) have sd 2/n−−√
-
-```{r moresim3}
-nosim <- 1000
-n <- 10
-sd(apply(matrix(rpois(nosim * n, 4), nosim), 1, mean))
-## [1] 0.6257625
-2 / sqrt(n)
-## [1] 0.6324555
-```

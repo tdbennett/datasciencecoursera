@@ -12,7 +12,7 @@ output: html_document
 
 ```{r lln1}
 n <- 10000
-means <- cumsum(rnorm(n)) / (1 : n)
+means <- cumsum(rnorm(n)) / (1 : n) ### makes the cumulative average of n random normals
 library(ggplot2)
 g <- ggplot(data.frame(x = 1 : n, y = means), aes(x = x, y = y)) 
 g <- g + geom_hline(yintercept = 0) + geom_line(size = 2) 
