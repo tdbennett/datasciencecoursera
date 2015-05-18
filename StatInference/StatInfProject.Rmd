@@ -16,6 +16,7 @@ Loading Packages
 
 ```{r loadpackages, echo = TRUE, results="hide", message=FALSE}
 library(ggplot2)
+library(dplyr)
 ```
 
 
@@ -25,6 +26,9 @@ x <- (rexp(40, 0.2))
 hist(x, breaks=30)
 mean(x)
 var(x)
+y <- as.data.frame(x)
+p <- ggplot(y, aes(x = x)) + theme_bw()
+p + geom_histogram(aes(y = ..density..), alpha=0.5) + geom_density(size = 0.5, alpha = 0.2) + geom_vline(xintercept = 5, size = 0.5) 
 ```
 
 #### Simulation - Exponential
@@ -39,7 +43,20 @@ zmeans <- apply(z, 1, mean)
 mean(zmeans)
 var(zmeans)
 hist(zmeans)
+zdf <- as.data.frame(z)
+zmdf <- as.data.frame(zmeans)
 
+p <- ggplot(, aes(x = x)) + theme_bw()
+p + geom_histogram(aes(y = ..density..), alpha=0.5) + geom_density(size = 0.5, alpha = 0.2) + geom_vline(xintercept = 5, size = 0.5) 
+
+p2 <- ggplot(zdf, aes(x = V1)) + theme_bw()
+p2 + geom_histogram(aes(y = ..density..), alpha=0.5) + geom_density(size = 0.5, alpha = 0.2) + geom_vline(xintercept = 5, size = 0.5) 
+
+        + geom_density(size = 1, alpha = .2) 
+        + geom_vline(xintercept = 5, size = 1) 
+ggplot(zmdf, aes(x = zmeans)
+        + geom_histogram()
+        + geom_density(size = 1, alpha = .2) + geom_vline(xintercept = 5, size = 1)
 ```
 
 
