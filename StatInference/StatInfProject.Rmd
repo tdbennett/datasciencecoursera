@@ -12,7 +12,7 @@ Synopsis
 
 
 Setting Seed and Loading Packages
------------------------------------
+---------------------------------
 
 ```{r loadpackages, echo = TRUE, results="hide", message=FALSE}
 set.seed(1234)
@@ -21,86 +21,71 @@ library(dplyr)
 ```
 
 
+Simulations
+-----------
 
-```{r exp}
+Here we generate 40 exponentials with $\lambda = 0.2$ __ONCE__ and display the `x` values using a histogram with an overlain density curve.  
+```{r exp, echo=FALSE}
 x <- (rexp(40, 0.2))
-hist(x, breaks=30)
-mean(x)
-var(x)
 y <- as.data.frame(x)
 p <- ggplot(y, aes(x = x)) + theme_bw()
 p + geom_histogram(aes(y = ..density..), alpha=0.5) + geom_density(size = 0.5, alpha = 0.2) + geom_vline(xintercept = 5, size = 0.5) 
 ```
 
-#### Simulation - Exponential
+\medskip
 
-Poisson(4) have variance 4; means of random samples of n Poisson(4) have sd 2/n−−√
+The theoretical mean of the distribution should be $1/\lambda = 5$ and the theoretical variance should be $(1/\lambda)^2$ = 25. The observed values are reasonably close to the theoretical values, although 40 is not a particularly large $n$
+```{r meanvar}
+mean(x)
+var(x)
+```
+\medskip
 
-```{r moresim3}
+
+Here we generate 40 exponentials with $\lambda = 0.2$ __1000 times__ and display the mean of each group of 40 exponentials using a histogram with an overlain density curve.  
+```{r moresim3, echo=FALSE}
 nosim <- 1000
 n <- 40
 z <- matrix(rexp(nosim * n, 0.2), nrow = nosim)
 zmeans <- apply(z, 1, mean)
-mean(zmeans)
-var(zmeans)
-hist(zmeans)
-zdf <- as.data.frame(z)
 zmdf <- as.data.frame(zmeans)
-
-p <- ggplot(, aes(x = x)) + theme_bw()
-p + geom_histogram(aes(y = ..density..), alpha=0.5) + geom_density(size = 0.5, alpha = 0.2) + geom_vline(xintercept = 5, size = 0.5) 
-
-p2 <- ggplot(zdf, aes(x = V1)) + theme_bw()
-p2 + geom_histogram(aes(y = ..density..), alpha=0.5) + geom_density(size = 0.5, alpha = 0.2) + geom_vline(xintercept = 5, size = 0.5) 
-
-        + geom_density(size = 1, alpha = .2) 
-        + geom_vline(xintercept = 5, size = 1) 
-ggplot(zmdf, aes(x = zmeans)
-        + geom_histogram()
-        + geom_density(size = 1, alpha = .2) + geom_vline(xintercept = 5, size = 1)
 ```
 
+\medskip
 
-
-#### This is the figure that asymptotically goes to the mean of 0
-```{r lln1}
-n <- 10000
-means <- cumsum(rnorm(n)) / (1 : n) ### makes the cumulative average of n random normals
-
-g <- ggplot(data.frame(x = 1 : n, y = means), aes(x = x, y = y)) 
-g <- g + geom_hline(yintercept = 0) + geom_line(size = 2) 
-g <- g + labs(x = "Number of obs", y = "Cumulative mean")
-g
+The theoretical mean of the distribution of 1000 means should be the population mean $1/\lambda = 5$ and the observed mean is quite close to that. 
+```{r meanvar2}
+mean(zmeans)
 ```
 
+\medskip
 
-#### This is the figure comparing 10, 20, and 30 random normals - CLT, getting narrower
-```{r moresim}
-nosim <- 10000; 
-dat <- data.frame(
-    x = c(apply(matrix(rnorm(nosim * 10), nosim), 1, var),
-          apply(matrix(rnorm(nosim * 20), nosim), 1, var),
-          apply(matrix(rnorm(nosim * 30), nosim), 1, var)),
-    n = factor(rep(c("10", "20", "30"), c(nosim, nosim, nosim))) 
-    )
-ggplot(dat, aes(x = x, fill = n)) + geom_density(size = 2, alpha = .2) + geom_vline(xintercept = 1, size = 2) 
+The standard error of the mean should be $\sqrt{((1/\lambda)^2) / n}$ = 0.016
+```{r meanvar3}
+sd(zmeans)
+var(zmeans)
+```
+The distribution of the 
+
+\medskip
+
+The below figure shows that the distribution of the means of 1000 groups of 40 exponentials is approximately normal, much more so than the mean of a single group of 40 exponentials.
+```{r plot2}
+p2 <- ggplot(zmdf, aes(x = zmeans)) + theme_bw()
+p2 + geom_histogram(aes(y = ..density..), alpha=0.5) + geom_density(size = 0.5, alpha = 0.2) + geom_vline(xintercept = 5, size = 0.5)
 ```
 
+### need titles for plots, 
 
-#### Side by side figure of 10, 20, 30
-```{r moresim2}
-dat <- data.frame(
-  x = c(apply(matrix(sample(1 : 6, nosim * 10, replace = TRUE), 
-                     nosim), 1, var),
-        apply(matrix(sample(1 : 6, nosim * 20, replace = TRUE), 
-                     nosim), 1, var),
-        apply(matrix(sample(1 : 6, nosim * 30, replace = TRUE), 
-                     nosim), 1, var)
-        ),
-  size = factor(rep(c(10, 20, 30), rep(nosim, 3))))
-g <- ggplot(dat, aes(x = x, fill = size)) + geom_histogram(alpha = .20, binwidth=.3, colour = "black") 
-g <- g + geom_vline(xintercept = 2.92, size = 2)
-g + facet_grid(. ~ size)
-```
+
+
+ToothGrowth Analysis
+--------------------
+
+
+
+
+
+
 
 
