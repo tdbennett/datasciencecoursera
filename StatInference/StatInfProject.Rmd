@@ -11,10 +11,11 @@ Synopsis
 2-3 sentences.
 
 
-Loading Packages
+Setting Seed and Loading Packages
 -----------------------------------
 
 ```{r loadpackages, echo = TRUE, results="hide", message=FALSE}
+set.seed(1234)
 library(ggplot2)
 library(dplyr)
 ```
