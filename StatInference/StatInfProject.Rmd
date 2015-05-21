@@ -11,10 +11,7 @@ Synopsis
 2-3 sentences.
 
 
-Setting Seed and Loading Packages
----------------------------------
-
-```{r loadpackages, echo = TRUE, results="hide", message=FALSE}
+```{r loadpackages, echo = FALSE, results="hide", message=FALSE}
 set.seed(1234)
 library(ggplot2)
 library(dplyr)
@@ -24,17 +21,17 @@ library(dplyr)
 Simulations
 -----------
 
-Here we generate 40 exponentials with $\lambda = 0.2$ __ONCE__ and display the `x` values using a histogram with an overlain density curve.  
+Here we generate 1000 random exponentials with $\lambda = 0.2$ and display the `x` values using a histogram with an overlain density curve.  
 ```{r exp, echo=FALSE}
-x <- (rexp(40, 0.2))
+x <- (rexp(1000, 0.2))
 y <- as.data.frame(x)
 p <- ggplot(y, aes(x = x)) + theme_bw()
-p + geom_histogram(aes(y = ..density..), alpha=0.5) + geom_density(size = 0.5, alpha = 0.2) + geom_vline(xintercept = 5, size = 0.5) 
+p + geom_histogram(aes(y = ..density..), alpha=0.5) + geom_density(size = 0.5, alpha = 0.2) + geom_vline(xintercept = 5, size = 0.5) + labs(title = "1000 random exponentials")
 ```
 
 \medskip
 
-The theoretical mean of the distribution should be $1/\lambda = 5$ and the theoretical variance should be $(1/\lambda)^2$ = 25. The observed values are reasonably close to the theoretical values, although 40 is not a particularly large $n$
+The theoretical mean of the distribution should be $1/\lambda = 5$ and the theoretical variance should be $(1/\lambda)^2$ = 25. The observed values are quite close to the theoretical values.
 ```{r meanvar}
 mean(x)
 var(x)
@@ -49,42 +46,73 @@ n <- 40
 z <- matrix(rexp(nosim * n, 0.2), nrow = nosim)
 zmeans <- apply(z, 1, mean)
 zmdf <- as.data.frame(zmeans)
+p2 <- ggplot(zmdf, aes(x = zmeans)) + theme_bw()
+p2 + geom_histogram(aes(y = ..density..), alpha=0.5) + geom_density(size = 0.5, alpha = 0.2) + geom_vline(xintercept = 5, size = 0.5) + labs(title = "1000 means of 40 random exponentials")
 ```
 
 \medskip
 
-The theoretical mean of the distribution of 1000 means should be the population mean $1/\lambda = 5$ and the observed mean is quite close to that. 
+The theoretical mean of the distribution of 1000 means should be the population mean $1/\lambda = 5$ and the observed mean is quite close to that. The standard error of the mean should be $\sqrt{((1/\lambda)^2) / n}$ = 0.016 and the sample value is just a bit larger.
 ```{r meanvar2}
 mean(zmeans)
-```
-
-\medskip
-
-The standard error of the mean should be $\sqrt{((1/\lambda)^2) / n}$ = 0.016
-```{r meanvar3}
 sd(zmeans)
-var(zmeans)
 ```
-The distribution of the 
 
 \medskip
 
-The below figure shows that the distribution of the means of 1000 groups of 40 exponentials is approximately normal, much more so than the mean of a single group of 40 exponentials.
-```{r plot2}
-p2 <- ggplot(zmdf, aes(x = zmeans)) + theme_bw()
-p2 + geom_histogram(aes(y = ..density..), alpha=0.5) + geom_density(size = 0.5, alpha = 0.2) + geom_vline(xintercept = 5, size = 0.5)
-```
+The above figure shows that the distribution of the means of 1000 groups of 40 exponentials is approximately normal, much more so than the single group of 1000 exponentials.
 
-### need titles for plots, 
+ 
 
 
 
 ToothGrowth Analysis
 --------------------
 
+Loading the dataset and checking its structure
+```{r loaddata, echo=FALSE}
+library(datasets)
+data(ToothGrowth)
+str(ToothGrowth)
+summary(ToothGrowth)
+```
 
+Summary of data
+---------------
 
+60 observations of 3 variables, no missing data
 
+Design: 10 guinea pigs, 3 different doses (`dose`) of vitamin C  
+Delivery method: `supp` = orange juice or ascorbic acid  
+Response: `len` = length of teeth  
+
+```{r boxplot, echo=FALSE}
+data <- ToothGrowth %>%
+    mutate(Group = interaction(as.factor(dose), supp))
+p <- ggplot(data, aes(Group, len)) + theme_bw()
+p + geom_boxplot() + geom_point(alpha=0.4) + labs(title = "Tooth Length by Dose and Delivery Method", y = "Tooth Length")
+```
+
+```{r testtooth}
+n1 <- length(g1)
+n2 <- length(g2)
+sp <- sqrt( ((n1 - 1) * sd(g1)^2 + (n2-1) * sd(g2)^2) / (n1 + n2-2))
+md <- mean(g2) - mean(g1)
+semd <- sp * sqrt(1 / n1 + 1/n2)
+
+rbind(
+md + c(-1, 1) * qt(.975, n1 + n2 - 2) * semd,  
+t.test(g2, g1, paired = FALSE, var.equal = TRUE)$conf,
+t.test(g2, g1, paired = TRUE)$conf
+
+difference <- g2 - g1
+mn <- mean(difference); s <- sd(difference); n <- 10
+
+mn + c(-1, 1) * qt(.975, n-1) * s / sqrt(n)
+t.test(difference)
+t.test(g2, g1, paired = TRUE)
+t.test(extra ~ I(relevel(group, 2)), paired = TRUE, data = sleep)
+```
 
 
 
