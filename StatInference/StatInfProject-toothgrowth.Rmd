@@ -1,0 +1,105 @@
+---
+title: "Tooth Growth and vitamin C in Guinea Pigs"
+author: "T. Bennett"
+date: "Monday, May 18, 2015"
+output: pdf_document
+---
+
+Synopsis
+--------
+
+This report shows that tooth growth in guinea pigs is associated with both vitamin C dose and delivery method (orange juice vs. ascorbic acid).
+
+
+```{r loadpackages, echo = FALSE, results="hide", message=FALSE}
+set.seed(1234)
+library(ggplot2)
+library(dplyr)
+```
+
+ 
+ToothGrowth Analysis
+--------------------
+
+Loading the dataset and checking its structure
+```{r loaddata, echo=FALSE}
+library(datasets)
+data(ToothGrowth)
+str(ToothGrowth)
+summary(ToothGrowth)
+```
+
+Summary of data
+---------------
+
+60 observations of 3 variables, no missing data
+
+Design: 10 guinea pigs, 3 different doses (`dose`) of vitamin C  
+Delivery method: `supp` = orange juice or ascorbic acid  
+Response: `len` = length of teeth  
+
+```{r boxplot, echo=FALSE}
+data <- ToothGrowth %>%
+    mutate(Group = interaction(as.factor(dose), supp))
+p <- ggplot(data, aes(Group, len)) + theme_bw()
+p + geom_boxplot() + geom_point(alpha=0.4) + labs(title = "Tooth Length by Dose and Delivery Method", y = "Tooth Length")
+```
+
+Visually, tooth length appears to be associated with vitamin C dose and perhaps delivery method.  Those hypotheses are tested below.  I assume in both cases that the variances are unequal and that a paired test is appropriate because the same 10 guinea pigs are being tested.
+
+```{r testtooth, echo=FALSE} 
+t.test(len ~ supp, data = data, paired=TRUE, var.equal=FALSE)$estimate
+t.test(len ~ supp, data = data, paired=TRUE, var.equal=FALSE)$conf
+```
+The above test shows that orange juice is associated with more tooth growth than ascorbic acid.
+```{r testtooth2, echo=FALSE} 
+datasm1 <- data %>%
+    filter(dose!=1)
+t.test(len ~ dose, data = datasm1, paired=TRUE, var.equal=FALSE)$estimate
+t.test(len ~ dose, data = datasm1, paired=TRUE, var.equal=FALSE)$conf
+```
+I excluded the middle dose (1) to make the t-test work, but lower dose is associated with less tooth growth when the `0.5` and `2` groups are compared.  Linear regression would be a better way to do this. 
+
+
+
+Appendix
+--------
+
+### R code - run above, not run here
+
+Set random number seed and load packages
+```{r loadpackages2, eval=FALSE, results="hide", message=FALSE}
+set.seed(1234)
+library(ggplot2)
+library(dplyr)
+```
+
+Load the toothgrowth data and generate some simple dataset summaries
+Loading the dataset and checking its structure
+```{r loaddata2, eval=FALSE}
+library(datasets)
+data(ToothGrowth)
+str(ToothGrowth)
+summary(ToothGrowth)
+```
+
+Generate the necessary analysis variables and the exploratory tooth growth box plot
+```{r boxplot2, eval=FALSE}
+data <- ToothGrowth %>%
+    mutate(Group = interaction(as.factor(dose), supp))
+p <- ggplot(data, aes(Group, len)) + theme_bw()
+p + geom_boxplot() + geom_point(alpha=0.4) + labs(title = "Tooth Length by Dose and Delivery Method", y = "Tooth Length")
+```
+
+Perform the t-tests on the tooth growth data
+```{r testtooth12, eval=FALSE} 
+t.test(len ~ supp, data = data, paired=TRUE, var.equal=FALSE)$estimate
+t.test(len ~ supp, data = data, paired=TRUE, var.equal=FALSE)$conf
+```
+
+```{r testtooth22, eval=FALSE} 
+datasm1 <- data %>%
+    filter(dose!=1)
+t.test(len ~ dose, data = datasm1, paired=TRUE, var.equal=FALSE)$estimate
+t.test(len ~ dose, data = datasm1, paired=TRUE, var.equal=FALSE)$conf
+```

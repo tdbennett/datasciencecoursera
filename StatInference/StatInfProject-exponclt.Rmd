@@ -1,6 +1,6 @@
 ---
-title: "Comparison of the Exponential Distribution with the Central Limit Theorem"
-author: "Tell Bennett"
+title: "The Central Limit Theorem and the Exponential Distribution"
+author: "T. Bennett"
 date: "Monday, May 18, 2015"
 output: pdf_document
 ---
@@ -8,7 +8,7 @@ output: pdf_document
 Synopsis
 --------
 
-2-3 sentences.
+This report shows that the central limit theorem applies for the exponential distribution, i.e. the means of sets of random exponentials tend to be normally distributed with their mean at the population mean. 
 
 
 ```{r loadpackages, echo = FALSE, results="hide", message=FALSE}
@@ -29,14 +29,12 @@ p <- ggplot(y, aes(x = x)) + theme_bw()
 p + geom_histogram(aes(y = ..density..), alpha=0.5) + geom_density(size = 0.5, alpha = 0.2) + geom_vline(xintercept = 5, size = 0.5) + labs(title = "1000 random exponentials")
 ```
 
-\medskip
 
 The theoretical mean of the distribution should be $1/\lambda = 5$ and the theoretical variance should be $(1/\lambda)^2$ = 25. The observed values are quite close to the theoretical values.
 ```{r meanvar}
 mean(x)
 var(x)
 ```
-\medskip
 
 
 Here we generate 40 exponentials with $\lambda = 0.2$ __1000 times__ and display the mean of each group of 40 exponentials using a histogram with an overlain density curve.  
@@ -49,71 +47,44 @@ zmdf <- as.data.frame(zmeans)
 p2 <- ggplot(zmdf, aes(x = zmeans)) + theme_bw()
 p2 + geom_histogram(aes(y = ..density..), alpha=0.5) + geom_density(size = 0.5, alpha = 0.2) + geom_vline(xintercept = 5, size = 0.5) + labs(title = "1000 means of 40 random exponentials")
 ```
-
-\medskip
-
 The theoretical mean of the distribution of 1000 means should be the population mean $1/\lambda = 5$ and the observed mean is quite close to that. The standard error of the mean should be $\sqrt{((1/\lambda)^2) / n}$ = 0.016 and the sample value is just a bit larger.
 ```{r meanvar2}
 mean(zmeans)
 sd(zmeans)
 ```
 
-\medskip
-
-The above figure shows that the distribution of the means of 1000 groups of 40 exponentials is approximately normal, much more so than the single group of 1000 exponentials.
+The above figure shows that the distribution of the means of 1000 groups of 40 exponentials is approximately normal, much more so than the single group of 1000 exponentials. The mean is very near the population mean, and the variance is symmetric.
 
  
 
 
+Appendix
+--------
 
-ToothGrowth Analysis
---------------------
+### R code - run above, not run here
 
-Loading the dataset and checking its structure
-```{r loaddata, echo=FALSE}
-library(datasets)
-data(ToothGrowth)
-str(ToothGrowth)
-summary(ToothGrowth)
+Set random number seed and load packages
+```{r loadpackages2, eval=FALSE, results="hide", message=FALSE}
+set.seed(1234)
+library(ggplot2)
+library(dplyr)
 ```
 
-Summary of data
----------------
-
-60 observations of 3 variables, no missing data
-
-Design: 10 guinea pigs, 3 different doses (`dose`) of vitamin C  
-Delivery method: `supp` = orange juice or ascorbic acid  
-Response: `len` = length of teeth  
-
-```{r boxplot, echo=FALSE}
-data <- ToothGrowth %>%
-    mutate(Group = interaction(as.factor(dose), supp))
-p <- ggplot(data, aes(Group, len)) + theme_bw()
-p + geom_boxplot() + geom_point(alpha=0.4) + labs(title = "Tooth Length by Dose and Delivery Method", y = "Tooth Length")
+Generate one set of 1000 random exponentials and show that histogram
+```{r exp2, eval=FALSE}
+x <- (rexp(1000, 0.2))
+y <- as.data.frame(x)
+p <- ggplot(y, aes(x = x)) + theme_bw()
+p + geom_histogram(aes(y = ..density..), alpha=0.5) + geom_density(size = 0.5, alpha = 0.2) + geom_vline(xintercept = 5, size = 0.5) + labs(title = "1000 random exponentials")
 ```
 
-```{r testtooth}
-n1 <- length(g1)
-n2 <- length(g2)
-sp <- sqrt( ((n1 - 1) * sd(g1)^2 + (n2-1) * sd(g2)^2) / (n1 + n2-2))
-md <- mean(g2) - mean(g1)
-semd <- sp * sqrt(1 / n1 + 1/n2)
-
-rbind(
-md + c(-1, 1) * qt(.975, n1 + n2 - 2) * semd,  
-t.test(g2, g1, paired = FALSE, var.equal = TRUE)$conf,
-t.test(g2, g1, paired = TRUE)$conf
-
-difference <- g2 - g1
-mn <- mean(difference); s <- sd(difference); n <- 10
-
-mn + c(-1, 1) * qt(.975, n-1) * s / sqrt(n)
-t.test(difference)
-t.test(g2, g1, paired = TRUE)
-t.test(extra ~ I(relevel(group, 2)), paired = TRUE, data = sleep)
+Generate 40 exponentials __1000 times__ and show that histogram  
+```{r moresim32, eval=FALSE}
+nosim <- 1000
+n <- 40
+z <- matrix(rexp(nosim * n, 0.2), nrow = nosim)
+zmeans <- apply(z, 1, mean)
+zmdf <- as.data.frame(zmeans)
+p2 <- ggplot(zmdf, aes(x = zmeans)) + theme_bw()
+p2 + geom_histogram(aes(y = ..density..), alpha=0.5) + geom_density(size = 0.5, alpha = 0.2) + geom_vline(xintercept = 5, size = 0.5) + labs(title = "1000 means of 40 random exponentials")
 ```
-
-
-
-
