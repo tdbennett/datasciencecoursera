@@ -48,8 +48,8 @@ qt(0.975, 8)
 # t interval is xˉ±t.975,8 ∗ s/sqrt(n)
 qt(0.975, 8)
 # 2.306
--2 + 2.306*(x/3) = 0
-2 = (2.306/3)x
+#-2 + 2.306*(x/3) = 0
+#2 = (2.306/3)x
 2/(2.306/3)
 ## 2.60
 
@@ -57,23 +57,18 @@ qt(0.975, 8)
 # easy
 
 #4
-# equal sample sizes, so pooled var is ave of the two variances = 0.64
-# t interval is xˉ±t.975,8 ∗ s/sqrt(n)
-qt(0.975, 9)
-# 2.26
-# SD is 0.8, sqrt(0.64)
-sqrt(10)
--2 + 2.26*(0.8/3.162)
+sp <- sqrt((9 * 0.6 + 9 * 0.68) / (10 + 10 - 2))
+3 - 5 + c(-1, 1) * qt(.975, 18) * sp * (1 / 10 + 1 / 10)^.5
 
-round(pnorm(70, mean = 80, sd = 10) * 100)
+#5
+# easy
 
-round(qnorm(.95, mean = 1100, sd = 75), 3)
+#6
+num <- (2^2/100 + 0.5^2/100)^2  
+denom <- (2^2/100)^2/99 + (0.5^2/100)^2/99
+df <- num/denom
+6 - 2 + c(-1,1) * qnorm(0.95, 111) * sqrt(2^2/100 + 0.5^2/100)
 
-round(qnorm(.95, mean = 1100, sd = 75 / sqrt(100) ), 3)
-
-round(pbinom(4, prob = .5, size = 5, lower.tail = FALSE) * 100, 1)
-
-round(pnorm(14, mean=15, sd=10/sqrt(100)),2)
-round(pnorm(16, mean=15, sd=10/sqrt(100)),2)
-
-round(ppois(10, lambda=5*3,lower.tail=TRUE),2)
+#7
+sp <- sqrt((8 * 1.5^2 + 8 * 1.8^2) / (9 + 9 - 2))
+-3 - 1 + c(-1, 1) * qt(.95, 16) * sp * (1 / 9 + 1 / 9)^.5
