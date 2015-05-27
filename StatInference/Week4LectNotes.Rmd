@@ -25,26 +25,21 @@ output: html_document
     - Equivalently if $\bar X > 30 + Z_{1-\alpha} \frac{\sigma}{\sqrt{n}}$
 * Under $H_0 : \bar X \sim N(\mu_0, \sigma^2 / n)$
 * Under $H_a : \bar X \sim N(\mu_a, \sigma^2 / n)$
-* So we want
+* So we want...
 
-```{r ch1}
-alpha = 0.05
-z = qnorm(1 - alpha)
-pnorm(mu0 + z * sigma / sqrt(n), mean = mua, sd = sigma / sqrt(n), 
-      lower.tail = FALSE)
-```
 
-### Example continued
+### Example 
 
 * $\mu_a = 32$, $\mu_0 = 30$, $n =16$, $\sigma = 4$
 
 ```{r ch2}
 mu0 = 30; mua = 32; sigma = 4; n = 16
+alpha = 0.05
 z = qnorm(1 - alpha)
 pnorm(mu0 + z * sigma / sqrt(n), mean = mu0, sd = sigma / sqrt(n), 
-      lower.tail = FALSE)
+      lower.tail = FALSE)  ### should just return alpha
 pnorm(mu0 + z * sigma / sqrt(n), mean = mua, sd = sigma / sqrt(n), 
-      lower.tail = FALSE)
+      lower.tail = FALSE)  ### gives you power
 ```
 
 ### Plotting the power curve
@@ -69,6 +64,7 @@ g
 ```
 
 ### Graphical Depiction of Power  - don't run using knitr, run separately
+### could this be adapted to other designs?
 
 ```{r ch4, eval=FALSE}
 library(manipulate)
@@ -140,6 +136,55 @@ power.t.test(power = .8, delta = 100, sd=200, type = "one.sample", alt = "one.si
 ```
 
 
+### Types of errors
+
+* Suppose you are testing a hypothesis that a parameter $\beta$ equals zero versus the alternative that it does not equal zero. These are the possible outcomes.
+
+	$\beta=0$ 	$\beta\neq0$ 	Hypotheses
+Claim $\beta=0$ 	$U$ 	$T$ 	$m-R$
+Claim $\beta\neq 0$ 	$V$ 	$S$ 	$R$
+Claims 	$m_0$ 	$m-m_0$ 	$m$
+
+* Type I error or false positive ($V$) Say that the parameter does not equal zero when it does
+
+* Type II error or false negative ($T$) Say that the parameter equals zero when it doesn't
 
 
+### Error rates
 
+* False positive rate - The rate at which false results ($\beta = 0$) are called significant: $E\left[\frac{V}{m_0}\right]$
+
+* Family wise error rate (FWER) - The probability of at least one false positive ${\rm Pr}(V \geq 1)$
+
+* False discovery rate (FDR) - The rate at which claims of significance are false $E\left[\frac{V}{R}\right]$
+
+    - The false positive rate is closely related to the type I error rate http://en.wikipedia.org/wiki/False_positive_rate
+
+
+### Controlling the false positive rate
+
+* If P-values are correctly calculated calling all $P < \alpha$ significant will control the false positive rate at level $\alpha$ on average.
+
+* Problem: Suppose that you perform 10,000 tests and $\beta = 0$ for all of them.
+
+    - Suppose that you call all $P < 0.05$ significant.
+
+    - The expected number of false positives is: $10,000 \times 0.05 = 500$ false positives.
+
+    - How do we avoid so many false positives?
+
+
+### Controlling family-wise error rate (FWER)
+
+* The Bonferroni correction is the oldest multiple testing correction.
+
+* Basic idea:
+
+    Suppose you do $m$ tests
+    You want to control FWER at level $\alpha$ so $Pr(V \geq 1) < \alpha$
+    Calculate P-values normally
+    Set $\alpha_{fwer} = \alpha/m$
+    Call all $P$-values less than $\alpha_{fwer}$ significant
+
+* Pros: Easy to calculate, conservative 
+* Cons: May be very conservative
