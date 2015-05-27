@@ -107,7 +107,7 @@ manipulate(
 * Power goes up as $\mu_1$ gets further away from $\mu_0$
 * Power goes up as $n$ goes up
 * Power doesn't need $\mu_a$, $\sigma$ and $n$, instead only $\frac{\sqrt{n}(\mu_a - \mu_0)}{\sigma}$
-    - The quantity $\frac{\mu_a - \mu_0}{\sigma}$ is called the effect size, the difference in the means in standard deviation units.
+    - The quantity $\frac{\mu_a - \mu_0}{\sigma}$ is called the __effect size__, the difference in the means in standard deviation units.
     - Being unit free, it has some hope of interpretability across settings
 
 ### T-test power
@@ -188,3 +188,77 @@ Claims 	$m_0$ 	$m-m_0$ 	$m$
 
 * Pros: Easy to calculate, conservative 
 * Cons: May be very conservative
+
+### Controlling false discovery rate (FDR)
+
+* This is the most popular correction when performing lots of tests say in genomics, imaging, astronomy, or other signal-processing disciplines.
+
+* Basic idea:
+
+    Suppose you do $m$ tests
+    You want to control FDR at level $\alpha$ so $E\left[\frac{V}{R}\right]$
+    Calculate P-values normally
+    Order the P-values from smallest to largest $P_{(1)},...,P_{(m)}$
+    Call any $P_{(i)} \leq \alpha \times \frac{i}{m}$ significant
+
+* Pros: Still pretty easy to calculate, less conservative (maybe much less)
+
+* Cons: Allows for more false positives, may behave strangely under dependence
+
+### Adjusted P-values
+
+* One approach is to adjust the threshold $\alpha$
+* A different approach is to calculate "adjusted p-values"
+* They _are not p-values_ anymore
+* But they can be used directly without adjusting $\alpha$
+
+__Example__: 
+* Suppose P-values are $P_1,\ldots,P_m$
+* You could adjust them by taking $P_i^{fwer} = \max{m \times P_i,1}$ for each P-value.
+* Then if you call all $P_i^{fwer} < \alpha$ significant you will control the FWER. 
+
+---
+
+### Case study I: no true positives
+
+```{r createPvals,cache=TRUE}
+set.seed(1010093)
+pValues <- rep(NA,1000)
+for(i in 1:1000){
+  y <- rnorm(20)
+  x <- rnorm(20)
+  pValues[i] <- summary(lm(y ~ x))$coeff[2,4]
+}
+
+# Controls false positive rate
+sum(pValues < 0.05)
+```
+
+---
+
+### Case study I: no true positives
+
+```{r, dependson="createPvals"}
+# Controls FWER 
+sum(p.adjust(pValues,method="bonferroni") < 0.05)
+# Controls FDR 
+sum(p.adjust(pValues,method="BH") < 0.05)
+```
+
+
+---
+
+### Case study II: 50% true positives
+
+```{r createPvals2,cache=TRUE}
+set.seed(1010093)
+pValues <- rep(NA,1000)
+for(i in 1:1000){
+  x <- rnorm(20)
+  # First 500 beta=0, last 500 beta=2
+  if(i <= 500){y <- rnorm(20)}else{ y <- rnorm(20,mean=2*x)}
+  pValues[i] <- summary(lm(y ~ x))$coeff[2,4]
+}
+trueStatus <- rep(c("zero","not zero"),each=500)
+table(pValues < 0.05, trueStatus)
+```
