@@ -227,7 +227,7 @@ pValues <- rep(NA,1000)
 for(i in 1:1000){
   y <- rnorm(20)
   x <- rnorm(20)
-  pValues[i] <- summary(lm(y ~ x))$coeff[2,4]
+  pValues[i] <- summary(lm(y ~ x))$coeff[2,4]  ### nice trick for getting p-value out of model
 }
 
 # Controls false positive rate
@@ -262,3 +262,38 @@ for(i in 1:1000){
 trueStatus <- rep(c("zero","not zero"),each=500)
 table(pValues < 0.05, trueStatus)
 ```
+
+```{r, dependson="createPvals2"}
+# Controls FWER 
+sum(p.adjust(pValues,method="bonferroni") < 0.05)
+# Controls FDR 
+sum(p.adjust(pValues,method="BH") < 0.05)
+```
+
+## Case study II: 50% true positives
+
+__P-values versus adjusted P-values__
+```{r, dependson="createPvals2",fig.height=4,fig.width=8}
+par(mfrow=c(1,2))
+plot(pValues,p.adjust(pValues,method="bonferroni"),pch=19)
+plot(pValues,p.adjust(pValues,method="BH"),pch=19)
+```
+
+
+---
+
+
+## Notes and resources
+
+__Notes__:
+* Multiple testing is an entire subfield
+* A basic Bonferroni/BH correction is usually enough
+* If there is strong dependence between tests there may be problems
+  * Consider method="BY"
+
+__Further resources__:
+* [Multiple testing procedures with applications to genomics](http://www.amazon.com/Multiple-Procedures-Applications-Genomics-Statistics/dp/0387493166/ref=sr_1_2/102-3292576-129059?ie=UTF8&s=books&qid=1187394873&sr=1-2)
+* [Statistical significance for genome-wide studies](http://www.pnas.org/content/100/16/9440.full)
+* [Introduction to multiple testing](http://ies.ed.gov/ncee/pubs/20084018/app_b.asp)
+
+
