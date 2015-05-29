@@ -119,10 +119,10 @@ g
 ### Example code
 
 ```{r}
-B <- 10000
+B <- 10000  ### want B to be large, to make Monte Carlo error (not enough sims) small
 resamples <- matrix(sample(x,
-                           n * B,
-                           replace = TRUE),
+                           n * B,  ### sample of n obs from a data set of n obs
+                           replace = TRUE),  ### with replacement to avoid just getting the original data set 
                     B, n)
 medians <- apply(resamples, 1, median)
 sd(medians)
@@ -142,8 +142,9 @@ g
 
 ### Notes on the bootstrap
 
-- The bootstrap is non-parametric
-- Better percentile bootstrap confidence intervals correct for bias
+- The bootstrap shown here is non-parametric
+- Better percentile bootstrap confidence intervals correct for bias 
+    - look for the bias-corrected accelerated (BCA) interval in the bootstrap package in R
 - There are lots of variations on bootstrap procedures; the book "An Introduction to the Bootstrap"" by Efron and Tibshirani is a great place to start for both bootstrap and jackknife information
 
 
@@ -163,7 +164,7 @@ g
 ### Permutation tests
 -  Consider the null hypothesis that the distribution of the observations from each group is the same
 -  Then, the group labels are irrelevant
-- Consider a data frome with count and spray
+- Consider a data frame with count and spray
 - Permute the spray (group) labels 
 - Recalculate the statistic
   - Mean difference in counts
@@ -198,7 +199,7 @@ testStat <- function(w, g) mean(w[g == "B"]) - mean(w[g == "C"])
 observedStat <- testStat(y, group)
 permutations <- sapply(1 : 10000, function(i) testStat(y, sample(group)))
 observedStat
-mean(permutations > observedStat)
+mean(permutations > observedStat) ### percentage of permuted test stats that are larger than observed statistic
 ```
 
 ---
