@@ -13,7 +13,8 @@ Work by Tell Bennett
 * R Programming
 * Exploratory Data Analysis
 * Reproducible Research
-
+* Statistical Inference
+* Regression Models
 
 ----
 
