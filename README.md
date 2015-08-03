@@ -1,8 +1,10 @@
 # datasciencecoursera
-Projects from the Data Science Specialization 
+
+TB Projects from the Data Science Specialization 
 offered on Coursera by the JHU SOPH
 
-Work by Tell Bennett
+Work by Tell Bennett. See the CourseraDSScourses repo cloned from github/bcaffo for
+source course materials
 
 ----
 
