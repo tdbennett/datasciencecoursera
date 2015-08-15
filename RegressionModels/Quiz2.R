@@ -21,39 +21,33 @@ summary(fit)$sigma
 ## problem 3
 
 data(mtcars)
-summary(mtcars)
+#summary(mtcars)
 
-fit2 <- lm(mtcars$mpg ~ mtcars$wt)
+fit3 <- lm(mpg ~ I(wt - mean(wt)), data = mtcars)  ### question asks re: average wt
+summary(fit3)
+
+newwt <- mean(mtcars$wt)
+
+ans1 <- data.frame(predict(fit3, newdata = data.frame(wt = newwt), interval = "confidence"))
+
+
+
+
+## problem 5
+
+data(mtcars)
+#summary(mtcars)
+
+fit2 <- lm(mpg ~ wt, data = mtcars)  ### need to make the call this way otherwise predict acts funny below
 summary(fit2)
 
-sumCoef <- summary(fit2)$coefficients
-sumCoef[2,1] + c(-1, 1) * qt(.975, df = fit2$df) * sumCoef[2, 2]
+newwt <- data.frame(wt = seq(1, 5, by = 0.1))
+p1 = data.frame(predict(fit2, newdata = newwt, interval = ("confidence"))) ## confidence in regression line - very narrow
+p2 = data.frame(predict(fit2, newdata = newwt, interval = ("prediction"))) ## what I think of as a CI, CI of est x at a new y
 
 
 
+## problem 9
 
-
-
-
-## problem 6
-
-x <- c(8.58, 10.46, 9.01, 9.64, 8.86)
-
-xn <- (x - mean(x))/sd(x)
-xn
-
-
-## problem 7
-
-x <- c(0.8, 0.47, 0.51, 0.73, 0.36, 0.58, 0.57, 0.85, 0.44, 0.42)
-y <- c(1.39, 0.72, 1.55, 0.48, 1.19, -1.59, 1.23, -0.65, 1.49, 0.05)
-
-lm(y ~ x)
-
-
-## problem 8
-
-x <- c(0.8, 0.47, 0.51, 0.73, 0.36, 0.58, 0.57, 0.85, 0.44, 0.42)
-mean(x)
-
+## R squared of fit2 is 0.75, see lect 6 slide 14, the ratio must be 0.25
 
