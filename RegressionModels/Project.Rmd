@@ -110,7 +110,12 @@ boxplot(mpg ~ carb, main = "MPG, by # of Carburetors", data = mtcars, xlab = "Ca
 par(mfrow = c(1,1))
 ```
 
-  
+
+
+Model Selection
+---------------
+
+
   
   
   
