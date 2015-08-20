@@ -1,14 +1,14 @@
 ---
-title: "Population Health and Economic Impact of Severe Weather Events in the U.S."
-author: "Tell Bennett"
-date: "Friday, April 24, 2015"
-output: html_document
+title: "Mileage Differences between Automatic and Manual Transmissions"
+author: "T. Bennett"
+date: "August 23, 2015"
+output: pdf_document
 ---
 
 
 
-Synopsis
---------
+Executive Summary
+-----------------
 This document describes an analysis of the U.S. National Oceanic and Atmospheric Administration (NOAA)'s Storm Events database from 1950 to November 2011.  The goals of the analysis were to assess the 1) population health and 2) economic impact of severe storm events.
 
 As one might expect based on geography, the types of storm events in each U.S. state vary widely.  Government officials and planners need to account for local events in their use of this analysis. 
@@ -23,7 +23,6 @@ Data Processing
 ---------------
 
 ```{r options, echo = FALSE}
-#setwd("./ReproducibleResearch/Proj2/")
 options(dplyr.max_print = 10)
 options(dplyr.min_print =  5)
 ```
@@ -34,204 +33,93 @@ options(dplyr.min_print =  5)
 
 ```{r loadpackages, echo = TRUE, results="hide", message=FALSE}
 library(dplyr)
-library(lubridate)
 library(ggplot2)
 library(stringr)
-library(datasets)
-library(htmlTable)
+library(xtable)
 ```
 
-  
-  
-  
 
 2) Loading the raw data
 
 ```{r dataload, cache=TRUE}
-## Download the data 
-url <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
-setInternet2(TRUE)
-download.file(url, destfile = "stormdata.bz2")
-
-## Document the download time
-downloadtime <- date()
-downloadtime
+## load and inspect the data 
+data(mtcars)
+str(mtcars)
+glimpse(mtcars)
 ```
 
-  
-  
-  
 
-3) Read the data into R
+This analysis is based on the `mtcars` dataset included in the `datasets` package in base R. 
+It contains data on the 1973-74 models of 32 different automobiles including fuel consumption
+and 10 aspects of automobile design. Total 32 rows and 11 fields, no missing data.
 
-```{r dataread, cache=TRUE}
-stormdata <- read.table("stormdata.bz2", sep = ",", header=TRUE, stringsAsFactors=FALSE)
+
+  
+Exploratory Data Analyses 
+-------------------------
+
+Miles per gallon is the primary outcome.
+
+```{r eda1, cache=TRUE}
+with(mtcars, boxplot(mpg, main = "Miles per gallon, overall"))
 ```
 
-  
-  
-  
-
-4) Exploring the raw data to facilitate cleaning
-```{r explore1}
-dim(stormdata)
-# glimpse(stormdata)
+```{r labeltrtype, results = "asis"}
+mtcars <- mtcars %>%
+    mutate(trtype = factor(am, labels = c("Automatic", "Manual")))
+           
+tab <- xtable(table(trtype))
+tab
 ```
 
-  
-  
-  
+Transmission type is the primary predictor of interest. `r 13/32` have a manual transmission 
+and `19/32` have a manual transmission.
 
-5) Extract the necessary variables
-```{r extract, cache=TRUE}
-stormdata <- transmute(stormdata,
-        id = REFNUM,
-        evtype = EVTYPE,
-        state.abb = STATE,
-        begindate = BGN_DATE,
-        enddate = END_DATE,
-        deaths = FATALITIES,
-        injuries = INJURIES,
-        propdmg = PROPDMG,
-        propdmgexp = PROPDMGEXP,
-        cropdmg = CROPDMG,
-        cropdmgexp = CROPDMGEXP)
+```{r bivplot, cache=TRUE}
+with(mtcars, boxplot(mpg ~ trtype, main = "Miles per gallon, by transmission type"))
 ```
 
-  
-  
-  
-
-6) Check for duplicate events
-```{r checking for duplicate events}
-summarize(stormdata, unique=n_distinct(id))
+A bivariate plot does suggest that manual transmissions are associated with better
+gas mileage. 
+```{r ttest}
+res <- t.test(mpg ~ trtype, var.equal=FALSE, data = mtcars)
 ```
-No duplicate events found.
+A t-test of `mpg` using unequal variances bears that out: cars with automatic transmissions get `r res$estimate[1]` 
+miles per gallon and cars with manual transmissions get `r res$estimate[2]` miles per gallon,
+t-test _p_ = `r res$p.value`.
 
+
+
+Potential Confounders
+---------------------
   
-  
-  
-  
-
-7) Clean the state field.  Because the question relates to the U.S., I excluded rows describing events that did not have a two-letter code for one of the 50 U.S. states.  I loaded the 'state' dataset included in the 'datasets' [package](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/state.html) in R in order to access files that contain the 50 U.S. state abbreviations and U.S. regions (used below).
-```{r cleanstate}
-table(stormdata$state.abb, useNA = "always")
-
-data(state)
-state.abb
-
-state2 <- state.abb
-
-stormdata <- stormdata %>%
-    filter(state.abb %in% state2)
-
-table(stormdata$state.abb, useNA = "always")
-```
-The data file now contains only events that occurred in one of the 50 U.S. states.
-
-  
-  
-  
-
-8) Clean the dates
-```{r cleandates, cache=TRUE}
-stormdata2 <- str_split_fixed(stormdata$begindate, pattern = " ", 2)
-stormdata3 <- str_split_fixed(stormdata$enddate, " ", 2)
-
-stormdata <- cbind(stormdata, stormdata2[,1],stormdata3[,1])
-
-stormdata <- stormdata %>%
-        select(-begindate,-enddate) %>%
-        mutate(begindate = mdy(stormdata2[,1]), enddate = stormdata3[,1]) 
-
-stormdata <- stormdata[,c(1:9,12:13)]
-
-rm(stormdata2)
-rm(stormdata3)
-```
-
-  
-  
-  
-
-9) Clean the property and crop damage fields.  I assume in the below "Damage Exponent" fields (one each for property and crop) that '0' means no multiplier (i.e. multiplier = 1), that 'h' and 'H' mean 10^2, that 'k' and 'K' mean 10^3, that 'm' and 'M' mean 10^6, and that 'B' means 10^9.  Other symbols were assumed to be typos and set to 1.  Other numbers were left as is.
-```{r cleanpropertycrop, cache=TRUE}
-
-sum(is.na(stormdata$propdmg))
-## No missing propdmg
-
-sum(is.na(stormdata$cropdmg))
-## No missing cropdmg
-
-table(stormdata$propdmgexp, useNA = "always")
-stormdata$propdmgexp[stormdata$propdmgexp=="0"] <- 1
-stormdata$propdmgexp[stormdata$propdmgexp==""] <- 1
-stormdata$propdmgexp[stormdata$propdmgexp=="-"] <- 1
-stormdata$propdmgexp[stormdata$propdmgexp=="+"] <- 1
-stormdata$propdmgexp[stormdata$propdmgexp=="?"] <- 1
-stormdata$propdmgexp[stormdata$propdmgexp=="h"] <- 1000
-stormdata$propdmgexp[stormdata$propdmgexp=="H"] <- 1000
-stormdata$propdmgexp[stormdata$propdmgexp=="K"] <- 1000
-stormdata$propdmgexp[stormdata$propdmgexp=="M"] <- 1000000
-stormdata$propdmgexp[stormdata$propdmgexp=="m"] <- 1000000
-stormdata$propdmgexp[stormdata$propdmgexp=="B"] <- 1000000000
-table(stormdata$propdmgexp, useNA = "always")
-## clean
-
-table(stormdata$cropdmgexp, useNA = "always")
-stormdata$cropdmgexp[stormdata$cropdmgexp=="0"] <- 1
-stormdata$cropdmgexp[stormdata$cropdmgexp==""] <- 1
-stormdata$cropdmgexp[stormdata$cropdmgexp=="?"] <- 1
-stormdata$cropdmgexp[stormdata$cropdmgexp=="K"] <- 1000
-stormdata$cropdmgexp[stormdata$cropdmgexp=="k"] <- 1000
-stormdata$cropdmgexp[stormdata$cropdmgexp=="M"] <- 1000000
-stormdata$cropdmgexp[stormdata$cropdmgexp=="m"] <- 1000000
-stormdata$cropdmgexp[stormdata$cropdmgexp=="B"] <- 1000000000
-table(stormdata$cropdmgexp, useNA = "always")
-
-stormdata <- stormdata %>%
-    mutate(propdmg = (propdmg*as.numeric(propdmgexp)), cropdmg = (cropdmg*as.numeric(cropdmgexp)))
-
-fivenum(stormdata$propdmg)
-fivenum(stormdata$cropdmg)
-```
-
-  
-  
-  
-
-10) Initial cleaning of the event type field
-```{r cleanevtype,cache=TRUE}
-summarize(stormdata, unique=n_distinct(evtype))
-
-### Changing all evtype strings to lower case and removing spaces at the beginning and end of strings
-stormdata <- stormdata %>%
-    mutate(evtype = tolower(str_trim(evtype)))
-summarize(stormdata, unique=n_distinct(evtype))
+Several other variables might confound the Transmission Type - Mileage relationship. 
+Any of the other 9 variables in the `mtcars` dataset might be hypothesized to be important, but 
+to avoid modeling nuisance variables I will only consider those that have a relationship with the outcome, mileage.
+```{r econimpact}
+bytrtype <- mtcars %>%
+    group_by(trtype) %>%
+    summarize(
+        Count = n(),
+        Property = format((sum(propdmg)/(Count*1000)), big.mark=",", digits=3), 
+        Crop = format((sum(cropdmg)/(Count*1000)), big.mark=",", digits=3)) %>%
+    select(EventType, Count, Property, Crop)
+# byevtype2
 ```
 
   
   
   
   
-
-11) Removing event types not associated with either health or property impact
-```{r byev, cache=TRUE,message=FALSE}
-byev <- stormdata %>%
-    group_by(evtype) %>%
-    summarize(propimpact = sum(propdmg), 
-              cropimpact = sum(cropdmg),
-              injimpact = sum(injuries),
-              deathimpact = sum(deaths),
-              impact = sum(propimpact, cropimpact, injimpact, deathimpact)) %>%
-    filter(impact > 0) %>%
-    select(evtype)
-
-stormdata <- inner_join(stormdata,byev)
-### This join removes those without either health or property impact
+```{r econimpact table}
+htmlTable(byevtype2,
+          rnames = FALSE,
+         # header = c("Event Type", "Mean Property Damage ($)", "Mean Crop Damage ($)"),
+          caption = "<a name=table02></a> <b> Table 2 </b> Mean Damage per Event ($thousands)",
+          align = "llll",
+          align.header = "llll")
 ```
 
-  
   
   
   
@@ -462,29 +350,7 @@ rm(coastdata)
   
   
   
- 
-13) All other categories have fewer than 200 events (max 149, dust devil).  I excluded these small categories below.
-```{r filter, cache=TRUE, message=FALSE}
-filter <- stormdata %>%
-    group_by(evtype) %>%
-    summarize(count = n()) %>%
-    filter(count >200)
 
-### Dropping the events that have <200 records
-stormdata <- semi_join(stormdata, filter)
-
-### Checking
-stormdata %>%
-    group_by(evtype) %>%
-    summarize(count = n())
-
-### Cleaning up
-rm(filter)
-rm(byev)
-```
-
-  
-  
   
 
 Results - Events overall
@@ -505,7 +371,7 @@ ggplot(byyear, aes(x=year2, y=count)) +
     labs(colour = "Event Type", linetype = "Event Type")
 ```
 
-As described in NOAA's Storm Event database [reference material](http://www.ncdc.noaa.gov/stormevents/details.jsp), tornado data is available from 1950-, and hail and 'thunderstorm wind' event data from 1955-.  Data for the many other categories are only available since 1996.
+
 
   
   
