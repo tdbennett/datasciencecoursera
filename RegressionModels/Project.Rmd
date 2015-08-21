@@ -74,8 +74,8 @@ tab <- xtable(table(mtcars$trtype))
 tab
 ```
 
-Transmission type is the primary predictor of interest. `r 13/32` have a manual transmission 
-and `19/32` have a manual transmission.
+Transmission type is the primary predictor of interest. 13/32, `r 13/32` have a manual transmission 
+and 19/32, `r 19/32` have a manual transmission.
 
 ```{r bivplot, cache=TRUE}
 boxplot(mpg ~ trtype, main = "MPG, by transmission type", data = mtcars)

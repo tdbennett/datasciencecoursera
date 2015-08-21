@@ -2,7 +2,6 @@
 *.Rhistory
 *.RData
 
-*.pdf
 .Rproj.user
 *.rdb
 *.rdx
