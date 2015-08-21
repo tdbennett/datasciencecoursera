@@ -140,96 +140,23 @@ summary(fit)
 ```
 
 
+
+
 Model Selection
 ---------------
 
 
   
-  
-  
-```{r econimpact table}
-htmlTable(byevtype2,
-          rnames = FALSE,
-         # header = c("Event Type", "Mean Property Damage ($)", "Mean Crop Damage ($)"),
-          caption = "<a name=table02></a> <b> Table 2 </b> Mean Damage per Event ($thousands)",
-          align = "llll",
-          align.header = "llll")
-```
 
   
-  
-  
 
-Results - Events overall
-------------------------
-
-1) Exploratory analysis - events over time
-```{r eventsovertime}
-byyear <- stormdata %>%
-    group_by(year2 = year(begindate),evtype) %>%
-    summarize(count = n())
-
-ggplot(byyear, aes(x=year2, y=count)) +
-    geom_line(aes(colour = evtype, linetype=evtype), size=1) +
-    theme_bw(base_size = 12, base_family= "") +
-    xlab("Year") +
-    ylab("Number of Events") +
-    ggtitle("Figure 1: Storm Events over Time") +
-    labs(colour = "Event Type", linetype = "Event Type")
-```
-
-
-
-  
   
   
  
 
-2) Plot of Storm Events by U.S. State and Region
-```{r eventsbystateplot}
-plot1 <- ggplot(stormdata, aes(state.abb, fill=evtype)) +
-    geom_bar() + 
-    theme_bw(base_size = 12, base_family= "") +
-    ylab("Number of Events") +
-    xlab("State") +
-    ggtitle("Figure 2: Storm Events by State") +
-    labs(fill = "Event Type") +
-    theme(axis.title.x = element_text(face="bold"), axis.title.y = element_text(face="bold"),
-          axis.text.x = element_text(angle=90), title = element_text(face="bold"))
-plot1
-
-rm(plot1)
-```
-
-As one might expect based on geography, the types of storm events in each U.S. state vary widely.  Government officials and planners need to account for local events in their use of these data.  
-  
-  
-  
   
 
-Results - Population Health Impact of Storm Events
---------------------------------------------------
-  
-1) Health impacts - Overall, by Event Type
-```{r pophealth table}
-byevtype <- stormdata %>%
-    rename(EventType = evtype) %>%
-    group_by(EventType) %>%
-    summarize(Count = n(),
-              Injuries = sum(injuries), 
-              Deaths = sum(deaths),
-              InjuriesPerEvent = signif((Injuries/Count), digits=2),
-              DeathsPerEvent = signif((Deaths/Count), digits=2))
-# byevtype
 
-htmlTable(byevtype,
-          rnames = FALSE,
-          caption = "<a name=table01></a> <b> Table 1 </b> Injuries and Deaths by Event Type",
-          align = "llllll",
-          align.header = "llllll")
-```
-
-Heat events cause the most deaths and injuries per event.  Tropical depressions/storms and hurricanes cause nearly as many injuries per event, but fewer deaths.  Population health efforts in areas that are subject to summer heat waves might be directed at identifying people vulnerable to heat injury (the elderly, for example) who might need assistance if a heat wave occurred.  Coastal areas subject to major tropical depressions/storms and hurricanes might focus resources on enforcing evacuation orders, for example.
   
   
   
@@ -239,107 +166,11 @@ Heat events cause the most deaths and injuries per event.  Tropical depressions/
   
   
 
-3) Population Health Impact by Event for each State
-```{r healthbystateplot}
-
-plot1 <- ggplot(byevtypestatepop, aes(x = state.abb, y = deathsper1000, fill = evtype)) +
-    geom_bar(stat = "identity") +
-    theme_bw(base_size = 12, base_family= "") +
-    ylab("Deaths per 1000 population") +
-    xlab("State") +
-    ggtitle("Figure 3: Deaths per 1000 by U.S. State") +
-    labs(fill = "Event Type") +
-    theme(axis.title.x = element_text(face="bold"), axis.title.y = element_text(face="bold"),
-          axis.text.x = element_text(angle=90), title = element_text(face="bold"))
-plot1
-
-### Cleaning up
-rm(plot1)
-rm(byevtypestatepop)
-```
-
-The geographic distribution of storm events is shown in the wide variation in causes of storm-associated mortality in different U.S. states.
 
   
-  
-  
-
-Results - Economic Impact of Storm Events
------------------------------------------
-  
-1) Economic Impact per Event
-```{r econimpact}
-byevtype2 <- stormdata %>%
-    rename(EventType = evtype) %>%
-    group_by(EventType) %>%
-    summarize(
-        Count = n(),
-        Property = format((sum(propdmg)/(Count*1000)), big.mark=",", digits=3), 
-        Crop = format((sum(cropdmg)/(Count*1000)), big.mark=",", digits=3)) %>%
-    select(EventType, Count, Property, Crop)
-# byevtype2
-```
 
   
-  
-  
-  
-```{r econimpact table}
-htmlTable(byevtype2,
-          rnames = FALSE,
-         # header = c("Event Type", "Mean Property Damage ($)", "Mean Crop Damage ($)"),
-          caption = "<a name=table02></a> <b> Table 2 </b> Mean Damage per Event ($thousands)",
-          align = "llll",
-          align.header = "llll")
-```
-
-Tropical depressions/storms and hurricanes cause the most property and crop damage per storm event.  They are rare and do not occur in every state (see [Figure 2][fig2] above), but they cause tremendous amounts of property and crop damage.  Drought causes the second-most crop damage per event, but little property damage.  Other rainstorms, fires, and floods are fairly common and also cause significant property and crop damage.
-
-  
-  
-  
-
-2) Overall Economic Impact
-```{r econimpact2}
-byevtype2 <- stormdata %>%
-    rename(EventType = evtype) %>%
-    group_by(EventType) %>%
-    summarize(
-        Count = n(),
-        Property = format((sum(propdmg)/1000000), big.mark=",", digits=3), 
-        Crop = format((sum(cropdmg)/1000000), big.mark=",", digits=3)) %>%
-    select(EventType, Count, Property, Crop)
-
-htmlTable(byevtype2,
-          rnames = FALSE,
-         # header = c("Event Type", "Mean Property Damage ($)", "Mean Crop Damage ($)"),
-          caption = "<a name=table03></a> <b> Table 3 </b> Damage per Storm Event Type ($millions)",
-          align = "llll",
-          align.header = "llll")
-```
-
-Overall, flood events cause the most property damage, and are close behind drought events in causing the most crop damage.  Tropical storms/depressions and hurricanes cause the second-most property damage overall, despite the fact that they are rare.  Other rainstorm and tornado events calso cause significant property damage.  Winter storms also cause major crop damage.
-  
-  
-  
-[fig2]: Proj2_files/figure-html/eventsbystateplot-1.png "Figure 2"
-
-  
-  
-  
-Reference Materials
--------------------
-
-  
-1) Details about the variables in the NOAA Storm Events database can be found [here](ftp://ftp.ncdc.noaa.gov/pub/data/swdi/stormevents/csvfiles/Storm-Data-Export-Format.docx).
-
-2) Complete documentation of the NOAA Storm Events database can be found [here](https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2Fpd01016005curr.pdf).
-
-3) FAQ about the NOAA Storm Events database can be found [here](https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2FNCDC%20Storm%20Events-FAQ%20Page.pdf).
-
-  
-  
-
+ 
 
 
 
