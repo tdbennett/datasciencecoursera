@@ -36,6 +36,7 @@ library(dplyr)
 library(ggplot2)
 library(stringr)
 library(xtable)
+library(GGally)
 ```
 
 
@@ -66,7 +67,8 @@ with(mtcars, boxplot(mpg, main = "Miles per gallon, overall"))
 
 ```{r labeltrtype, results = "asis"}
 mtcars <- mtcars %>%
-    mutate(trtype = factor(am, labels = c("Automatic", "Manual")))
+    mutate(trtype = factor(am, labels = c("Automatic", "Manual"))) %>%
+    select(-am)
            
 tab <- xtable(table(trtype))
 tab
@@ -94,10 +96,11 @@ Potential Confounders
 ---------------------
   
 Several other variables might confound the Transmission Type - Mileage relationship. 
-Any of the other 9 variables in the `mtcars` dataset might be hypothesized to be important, and
-bivariate plots of the 9 variables against `mpg` suggest that any of them could reasonably 
-be a predictor. I will consider them all for model selection.
-```{r latticeplot}
+Based on my working knowledge of automobile engines, any of the other 9 variables in 
+the `mtcars` dataset might be hypothesized to be important. The below bivariate plots 
+of the 9 variables against `mpg` suggest that any of them could reasonably 
+be a predictor. 
+```{r bivariateplots, cache = TRUE}
 par(mfrow = c(3,3))
 boxplot(mpg ~ cyl, main = "MPG, by # of Cylinders", data = mtcars, xlab = "Cylinders")
 with(mtcars, plot(disp, mpg, main = "MPG, by Displacement", xlab = "Displacement (cubic in.)"))
@@ -110,6 +113,31 @@ boxplot(mpg ~ carb, main = "MPG, by # of Carburetors", data = mtcars, xlab = "Ca
 par(mfrow = c(1,1))
 ```
 
+
+To avoid including two covariates that are highly correlated, I created the `pairs` plot below.
+```{r pairsplot, cache = TRUE}
+p <- ggpairs(mtcars, columns = 2:11, lower = list(continuous = "smooth"), params = c(method = "loess"))
+p
+```
+
+Number of cylinders, horsepower, and displacement are highly correlated (which makes sense, I suppose).
+I decided to include displacement in the model selection process and exclude the other two variables because 
+displacement is a continuous variable that reflects a physical property of the car 
+rather than a performance property of the car. Weight is also highly correlated with 
+displacement, but not quite as highly correlated with the other two variables, so
+I will consider weight during model selection.
+
+
+Linear Regression including all potential predictors
+----------------------------------------------------
+
+```{r reg1, echo = FALSE}
+mtcars <- mtcars %>%
+    select(-hp, -cyl)   ### removing horsepower and number of cylinders per the above
+
+fit <- lm(mpg ~ I(1 * (trtype == 'Manual')) + disp + drat + wt + qsec + vs + gear + carb, data = mtcars)
+summary(fit)
+```
 
 
 Model Selection
@@ -207,34 +235,7 @@ Heat events cause the most deaths and injuries per event.  Tropical depressions/
   
   
 
-2) Health impacts scaled to state population, by Event Type
 
-I brought in the population estimates for each state contained in the 'state' dataset included in the 'datasets' [package](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/state.html) in R.  The estimates are from 1975 and therefore not entirely accurate, but for the most part populous states are still populous and sparsely populated states are still sparsely populated.  Scaling the impacts to state population allows more accurate estimates of storm event impact on population health.
-```{r pophealthstate, cache=TRUE, message=FALSE, warning=FALSE}
-#state.x77
-
-statex77 <- as.data.frame(state.x77, stringsAsFactors=FALSE)
-stateinfo2 <- cbind(state.abb,statex77)
-
-stormdata <- left_join(stormdata,stateinfo2)
-
-## Checking the join
-nrow(stormdata)
-# table(stormdata$state.abb, useNA = "always")
-# table(stormdata$state.division, useNA = "always")
-
-## Removing some unnecessary variables
-stormdata <- stormdata %>%
-    select(-Illiteracy, -Murder, -contains("Grad"), -Frost, -Area)
-
-
-### Creating data frames for plotting below
-byevtypestatepop <- stormdata %>%
-    group_by(state.abb, evtype) %>%
-    summarize(injper1000 = (sum(injuries)/1000), deathsper1000 = (sum(deaths)/1000))
-```
-
-  
   
   
 
