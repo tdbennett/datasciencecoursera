@@ -1,5 +1,5 @@
 ---
-title: "Mileage Differences between Automatic and Manual Transmissions"
+title: "Fuel Consumption with Automatic versus Manual Transmissions"
 author: "T. Bennett"
 date: "August 23, 2015"
 output: pdf_document
@@ -70,7 +70,7 @@ mtcars <- mtcars %>%
     mutate(trtype = factor(am, labels = c("Automatic", "Manual"))) %>%
     select(-am)
            
-tab <- xtable(table(trtype))
+tab <- xtable(table(mtcars$trtype))
 tab
 ```
 
