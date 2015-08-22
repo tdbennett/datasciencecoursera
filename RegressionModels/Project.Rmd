@@ -9,13 +9,9 @@ output: pdf_document
 
 Executive Summary
 -----------------
-This document describes an analysis of the U.S. National Oceanic and Atmospheric Administration (NOAA)'s Storm Events database from 1950 to November 2011.  The goals of the analysis were to assess the 1) population health and 2) economic impact of severe storm events.
-
-As one might expect based on geography, the types of storm events in each U.S. state vary widely.  Government officials and planners need to account for local events in their use of this analysis. 
-    
-Heat events cause the most deaths and injuries per event.  Tropical depressions/storms and hurricanes cause nearly as many injuries per event, but fewer deaths.  
-
-Overall, flood events cause the most property damage, and are close behind drought events in causing the most crop damage.  Tropical storms/depressions and hurricanes cause the most property and crop damage per storm event, and the second-most property damage overall, despite the fact that they are rare.  Other rainstorm and tornado events calso cause significant property damage, and winter storms also cause major crop damage.
+We estimate that a car with a manual transmission gets 2.7(95% CI x to y) more miles per gallon 
+than a car with an automatic transmission after adjustment for vehicle weight, number of
+carburetors, and quarter mile time. 
 
 
 
@@ -214,17 +210,63 @@ vif(fit4)
 Model 4 has the best adjusted R^2 of any considered thus far ([0.84)]). It also has
 no difference by LR test from Model 2, which contained several more variables. The 
 variance inflation factors of Model 4 are the lowest of any model evaluated thus far.
+Model 4 will the basis for our final model.
 
-Final Model (Model 4)
----------------------
+Estimates from Model 4
+----------------------
 
 We estimate that a car with a manual transmission gets 3.5(95% CI x to y) more miles per gallon 
 than a car with an automatic transmission after adjustment for vehicle weight, number of
 carburetors, and quarter mile time. 
 
+Evaluation of Residuals
+-----------------------
 
-  
+```{r resids}
+residplot <- plot(fit4)
+residplot
+```
 
+The residual plot suggests that our final model fits the data reasonably well. The
+Residuals vs Fitted panel shows that, as might be expected in such a small data set,
+the model does not fit as well where the data are sparse, i.e. for very low or very high 
+fuel consumption cars. Points 3, 17, and 18 have residuals that are 2 standard deviations
+from the regression line and have at least medium leverage. Point 17, in particular
+(see the Scale-Location plot), might be quite influential to the fit.
+
+Diagnostics
+-----------
+
+```{r diagnostics}
+round(dfbetas(fit4), 3) ### 
+round(hatvalues(fit4), 3)
+round(cooks.distance(fit4), 3)
+round(dffits(fit4), 3)
+```
+
+Point 17 does appear to be quite influential, as it has by far the largest Cook's 
+Distance and the largest `dfbeta` and `dffit` value of any point. We will evaluate the
+model with that point removed.
+
+Evaluating fit with point 17 removed
+------------------------------------
+
+```{r remove17}
+mtcarssub <- mtcars[-17,]
+fit5 <- lm(mpg ~ I(1 * (trtype == 'Manual')) + wt + carb + qsec, data = mtcarssub)
+summary(fit5)
+vif(fit5)
+plot(fit5)
+```
+
+The residual plots suggest a better fit point 17 removed. This will be our final model.
+
+Estimates from Final Model
+--------------------------
+
+We estimate that a car with a manual transmission gets 2.7(95% CI x to y) more miles per gallon 
+than a car with an automatic transmission after adjustment for vehicle weight, number of
+carburetors, and quarter mile time. 
   
 
   
