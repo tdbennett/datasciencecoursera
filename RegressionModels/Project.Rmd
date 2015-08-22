@@ -1,13 +1,14 @@
 ---
 title: "Fuel Consumption with Manual versus Automatic Transmissions"
 author: "T. Bennett"
+geometry: margin=0.75in
 date: "August 23, 2015"
 output: pdf_document
 ---
 
 
-Executive Summary
------------------
+# Executive Summary
+
 We estimate that a car with a manual transmission gets 2.7(95% CI x to y) more miles per gallon 
 than a car with an automatic transmission after adjustment for vehicle weight, number of
 carburetors, and quarter mile time. 
@@ -39,8 +40,7 @@ str(mtcars)
 glimpse(mtcars)
 ```
 
-Data Source
------------
+## Data Source
 
 This analysis is based on the `mtcars` dataset included in the `datasets` package in base R. 
 It contains data on the 1973-74 models of 32 different automobiles including fuel consumption
@@ -49,8 +49,7 @@ without missing data.
 
 
   
-Exploratory Data Analyses 
--------------------------
+## Exploratory Data Analyses 
 
 Miles per gallon (`mpg`) is the primary outcome. Transmission type (`am`) is the primary predictor of interest. 13 of 32 have a manual transmission and 19 of 32 have a manual transmission.
 
@@ -75,8 +74,7 @@ t-test _p_ = `r round(res$p.value, 3)`.
 
 
 
-Potential Confounders
----------------------
+## Potential Confounders
   
 Several other variables might confound the Transmission Type - Mileage relationship. 
 Based on my working knowledge of automobile engines, any of the other 9 variables in 
@@ -84,19 +82,16 @@ the `mtcars` dataset might be hypothesized to be important. The bivariate plots
 of the 9 variables against `mpg` shown in Appendix [Figure 2][fig2] suggest that any 
 of them could reasonably be a predictor. 
 
-
 To avoid including two covariates that are either highly correlated themselves or highly correlated
 with the primary predictor of interest, I created a `pairs` plot (not shown, code in Appendix [Figure 3][fig3]).
 
-Number of cylinders, weight, and displacement are highly correlated (which makes sense, I suppose).
+On the `pairs` plot, number of cylinders, weight, and displacement are highly correlated.
 I decided to include displacement and weight in the model selection process because 
 they are continuous variables that reflects physical properties of the car. Number of cylinders is
 also reasonably highly correlated with transmission type, our primary predictor of interest.
 Horsepower is also highly correlated with  number of cylinders, but not quite as highly correlated with the other variables, so I will consider it during model selection.
 
-
-Linear Regression including all potential predictors (Model 1)
---------------------------------------------------------------
+## Linear Regression including all potential predictors (Model 1)
 
 ```{r fit1, echo = FALSE}
 mtcars <- mtcars %>%
@@ -111,12 +106,11 @@ more miles per gallon than cars with automatic transmissions after adjustment fo
 variables. However, this comparison is not statistically significant. Weight is the 
 variable that appears to potentially be an important predictor of fuel consumption,
 as each 1000 pounds of additional weight is associated with 3.7(95% CI x to y) fewer 
-miles per gallon, _p_ = []. This model fits the data reasonably well, as the adjusted R^2
+miles per gallon, _p_ = []. This model fits the data reasonably well, as the adjusted R^2^
 is [0.82].
 
 
-Assessing variance inflation
-----------------------------
+## Assessing variance inflation
 
 ```{r fit1vif}
 vif(fit)
@@ -127,8 +121,7 @@ well-founded, as those variables have the highest variance inflation factors. Ho
 displacement were poor predictors of fuel consumption in the full model, therefore we
 will remove those variables and re-fit the model.
 
-Model without horsepower or displacement (Model 2)
---------------------------------------------------
+## Model without horsepower or displacement (Model 2)
 
 ```{r fit2}
 fit2 <- lm(mpg ~ I(1 * (trtype == 'Manual')) + drat + wt + qsec + vs + gear + carb, data = mtcars)
@@ -136,15 +129,14 @@ summary(fit2)
 vif(fit2)
 ```
 
-Model 2 still fits the data reasonably well (adjusted R^2 is the same, [0.82]), but
+Model 2 still fits the data reasonably well (adjusted R^2^ is the same, [0.82]), but
 the variance inflation factors for the variables remaining in the model are now similar. The estimated
 effect of a manual transmission has changed only marginally (2.5 mpg higher instead of 2.6) and
 continues to be not statistically significant. The weight effect is slightly smaller (3.0 instead
 of 3.7), but is now statistically significant. This model is a candidate for a final model.
 
 
-Highly parsimonious model (Model 3)
------------------------------------
+## Highly parsimonious model (Model 3)
 
 Because vehicle weight was the only significant predictor in either previous model, I considered
 a model containing only transmission type and vehicle weight.
@@ -155,14 +147,13 @@ summary(fit3)
 lrtest(fit2,fit3)
 ```
 
-This model is likely too parsimonious, as the adjusted R^2 decreased to [0.74]. As
+This model is likely too parsimonious, as the adjusted R^2^ decreased to [0.74]. As
 you might expect, a nested likelihood ratio (LR) test comparing the highly parsimonious model 
 to the model without horsepower or displacement was significant, _p_ = 0.002. Interestingly,
 transmission type has no association with fuel consumption in this model.
 
 
-Adding variables back to the parsimonious model (Model 4)
----------------------------------------------------------
+## Adding variables back to the parsimonious model (Model 4)
 
 Of the remaining variables, quarter mile time (perhaps a proxy for several vehicle and tuning properties)
 and number of carburetors were the closest to significance in the previous models.
@@ -175,35 +166,27 @@ lrtest(fit4,fit2)
 vif(fit4)
 ```
 
-Model 4 has the best adjusted R^2 of any considered thus far ([0.84)]). It also has
+Model 4 has the best adjusted R^2^ of any considered thus far ([0.84)]). It also has
 no difference by LR test from Model 2, which contained several more variables. The 
 variance inflation factors of Model 4 are the lowest of any model evaluated thus far.
 Model 4 will the basis for our final model.
 
-Estimates from Model 4
-----------------------
+## Estimates from Model 4
 
 We estimate that a car with a manual transmission gets 3.5(95% CI x to y) more miles per gallon 
 than a car with an automatic transmission after adjustment for vehicle weight, number of
 carburetors, and quarter mile time. 
 
-Evaluation of Residuals
------------------------
+## Evaluation of Residuals
 
-```{r resids}
-residplot <- plot(fit4)
-residplot
-```
-
-The residual plot suggests that our final model fits the data reasonably well. The
+The residual plot (Appendix [Figure 4][fig4]) suggests that our final model fits the data reasonably well. The
 Residuals vs Fitted panel shows that, as might be expected in such a small data set,
 the model does not fit as well where the data are sparse, i.e. for very low or very high 
 fuel consumption cars. Points 3, 17, and 18 have residuals that are 2 standard deviations
 from the regression line and have at least medium leverage. Point 17, in particular
 (see the Scale-Location plot), might be quite influential to the fit.
 
-Diagnostics
------------
+## Diagnostics
 
 ```{r diagnostics}
 round(dfbetas(fit4), 3) ### 
@@ -216,29 +199,26 @@ Point 17 does appear to be quite influential, as it has by far the largest Cook'
 Distance and the largest `dfbeta` and `dffit` value of any point. We will evaluate the
 model with that point removed.
 
-Evaluating fit with point 17 removed
-------------------------------------
+## Evaluating fit with point 17 removed
 
 ```{r remove17}
 mtcarssub <- mtcars[-17,]
 fit5 <- lm(mpg ~ I(1 * (trtype == 'Manual')) + wt + carb + qsec, data = mtcarssub)
 summary(fit5)
 vif(fit5)
-plot(fit5)
 ```
 
-The residual plots suggest a better fit point 17 removed. This will be our final model.
+The updated residual plots (Appendix [Figure 5][fig 5] suggest a better fit with point 17 removed. 
+This will be our final model.
 
-Estimates from Final Model
---------------------------
+## Estimates from Final Model
 
 We estimate that a car with a manual transmission gets 2.7(95% CI x to y) more miles per gallon 
 than a car with an automatic transmission after adjustment for vehicle weight, number of
 carburetors, and quarter mile time. 
 
 
-Appendix
---------
+# Appendix
 
 ## Figure 1
 
@@ -248,7 +228,7 @@ boxplot(mpg ~ trtype, main = "MPG, by transmission type", data = mtcars)
 
 [fig1]: Project_files/figure-latex/bivplot-1.pdf "Figure 1"
 
-## Figure 2
+## Figure 2 - Bivariate Plots
 
 ```{r bivariateplots, cache = TRUE}
 par(mfrow = c(3,3))
@@ -274,8 +254,27 @@ p <- ggpairs(mtcars, columns = 2:11, lower = list(continuous = "smooth"), params
 
 [fig3]: Project_files/figure-latex/pairsplot-1.pdf "Figure 3"
 
-Reference
----------
+## Figure 4 - Residual plots from Model 4
+
+```{r resids, fig.height = 4}
+par(mfrow = c(2,2))
+plot(fit4)
+par(mfrow = c(1,1))
+```
+
+[fig4]: Project_files/figure-latex/pairsplot-1.pdf "Figure 4"
+
+## Figure 5 - Residual plots from Final Model
+
+```{r resids2, fig.height = 4}
+par(mfrow = c(2,2))
+plot(fit5)
+par(mfrow = c(1,1))
+```
+
+[fig5]: Project_files/figure-latex/pairsplot-1.pdf "Figure 5"
+
+## Reference
 
 The code (Project.Rmd) for this analysis can be found [here](https://github.com/tdbennett/datasciencecoursera/RegressionModels).
   
