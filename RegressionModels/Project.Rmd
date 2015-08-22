@@ -40,16 +40,14 @@ str(mtcars)
 glimpse(mtcars)
 ```
 
-# Data Source
+# Exploratory Data Analyses
 
 This analysis is based on the `mtcars` dataset included in the `datasets` package in base R. 
 It contains data on the 1973-74 models of 32 different automobiles including fuel consumption
 and 10 aspects of automobile design. This dataset (not shown) contains 32 rows and 11 fields
 without missing data.
 
-
-  
-# Exploratory Data Analyses 
+## Primary question
 
 Miles per gallon (`mpg`) is the primary outcome. Transmission type (`am`) is the primary predictor of interest. 13 of 32 have a manual transmission and 19 of 32 have a manual transmission.
 
@@ -61,29 +59,24 @@ mtcars2 <- mtcars %>%
 tab <- matrix(table(mtcars2$trtype))
 ```
 
-
-A bivariate plot does suggest that manual transmissions are associated with better
-gas mileage. See Appendix [Figure 1][].
-
 ```{r ttest}
 res <- t.test(mpg ~ trtype, var.equal=FALSE, data = mtcars2)
 ```
-A t-test of `mpg` using unequal variances bears that out: cars with automatic transmissions get `r round(res$estimate[1], 1)` 
-miles per gallon and cars with manual transmissions get `r round(res$estimate[2],1)` miles per gallon,
+A bivariate t-test of `mpg` versus transmission type assuming unequal variances does suggest that manual transmissions are associated with better gas mileage: cars with automatic transmissions get `r round(res$estimate[1], 1)` miles per gallon and cars with manual transmissions get `r round(res$estimate[2],1)` miles per gallon,
 t-test _p_ = `r round(res$p.value, 3)`.
 
 
 
-# Potential Confounders
+## Potential confounders
   
 Several other variables might confound the Transmission Type - Mileage relationship. 
 Based on my working knowledge of automobile engines, any of the other 9 variables in 
 the `mtcars` dataset might be hypothesized to be important. The bivariate plots 
-of the other 8 variables against `mpg` shown in Appendix [Figure 2][fig2] suggest that any 
+of the other 8 variables against `mpg` shown in Appendix [Figure 1](Figure 1) suggest that any 
 of them could reasonably be a predictor. 
 
 To avoid including two covariates that are either highly correlated themselves or highly correlated
-with the primary predictor of interest, I created a `pairs` plot (not shown, code in Appendix [Figure 3][fig3]).
+with the primary predictor of interest, I created a `pairs` plot (not shown, code in Appendix [Figure 2][]).
 
 On the `pairs` plot, number of cylinders, weight, and displacement are highly correlated.
 I decided to include displacement and weight in the model selection process because 
@@ -91,50 +84,49 @@ they are continuous variables that reflects physical properties of the car. Numb
 also reasonably highly correlated with transmission type, our primary predictor of interest.
 Horsepower is also highly correlated with  number of cylinders, but not quite as highly correlated with the other variables, so I will consider it during model selection.
 
-# Linear Regression including all potential predictors (Model 1)
+# Models
+
+## Linear Regression including all potential predictors (Model 1)
 
 ```{r fit1, echo = FALSE}
 mtcars2 <- mtcars2 %>%
     select(-cyl)   ### removing number of cylinders per the above
 
 fit <- lm(mpg ~ I(1 * (trtype == 'Manual')) + disp + drat + wt + qsec + vs + gear + carb + hp, data = mtcars2)
-summary(fit)
+fitcoef <- summary(fit)$coef
 ```
 
-In this full model, we estimate that cars with manual transmissions get 2.6(95% CI x to y) 
+In this full model, we estimate that cars with manual transmissions get 
+`r round(fitcoef[2,1], 1)` (95% CI x to y) 
 more miles per gallon than cars with automatic transmissions after adjustment for 8 other
 variables. However, this comparison is not statistically significant. Weight is the 
 variable that appears to potentially be an important predictor of fuel consumption,
-as each 1000 pounds of additional weight is associated with 3.7(95% CI x to y) fewer 
-miles per gallon, _p_ = []. This model fits the data reasonably well (adjusted R^2^ = [0.82]).
-
-
-# Assessing variance inflation
+as each 1000 pounds of additional weight is associated with `r round(fitcoef[5,1], 1)` (95% CI x to y) fewer miles per gallon. This model fits the data reasonably well (adjusted R^2^ = `r round(summary(fit)$adj.r.squared, 2)`).
 
 ```{r fit1vif}
 vif(fit)
 ```
 
 Our concern about the correlation between weight, horsepower, and displacement appears
-well-founded, as those variables have the highest variance inflation factors (VIFs). Horsepower and 
-displacement were poor predictors of fuel consumption in the full model, therefore we
+well-founded, as those variables have the highest variance inflation factors (VIFs). Horsepower and displacement were poor predictors of fuel consumption in the full model, therefore we
 will remove those variables and re-fit the model.
 
-# Model without horsepower or displacement (Model 2)
+## Model without horsepower or displacement (Model 2)
 
 ```{r fit2}
 fit2 <- lm(mpg ~ I(1 * (trtype == 'Manual')) + drat + wt + qsec + vs + gear + carb, data = mtcars2)
 summary(fit2)
+fit2coef <- summary(fit2)$coef
 vif(fit2)
 ```
 
-Model 2 still fits the data reasonably well (adjusted R^2^ is the same, [0.82]), but
+Model 2 still fits the data reasonably well (adjusted R^2^ is the same, `r round(summary(fit2)$adj.r.squared, 2)`), but
 the VIFs for the variables remaining in the model are now similar. The estimated
-effect of a manual transmission has changed only marginally (2.5 mpg instead of 2.6) and
-remains not statistically significant. The weight effect is slightly smaller (3.0 instead
-of 3.7), but is now statistically significant. 
+effect of a manual transmission has changed only marginally (`r round(fit2coef[2,1], 1)` mpg instead of `r round(fitcoef[2,1], 1)`) and
+remains not statistically significant. The weight effect is slightly smaller (`r round(fit2coef[4,1], 1)` instead
+of `r round(fitcoef[5,1], 1)`), but is now statistically significant. 
 
-# Highly parsimonious model (Model 3)
+## Highly parsimonious model (Model 3)
 
 Because vehicle weight was the only significant predictor in either previous model, I considered
 a model containing only transmission type and vehicle weight.
@@ -142,15 +134,16 @@ a model containing only transmission type and vehicle weight.
 ```{r fit3}
 fit3 <- lm(mpg ~ I(1 * (trtype == 'Manual')) + wt, data = mtcars2)
 summary(fit3)
+fit3coef <- summary(fit3)$coef
 lrtest(fit2,fit3)
 ```
 
-This model is likely too parsimonious, as the adjusted R^2^ decreased to [0.74]. As
+This model is likely too parsimonious, as the adjusted R^2^ decreased to `r round(summary(fit3)$adj.r.squared, 2)`. As
 you might expect, a nested likelihood ratio (LR) test comparing the highly parsimonious model 
 to the model without horsepower or displacement was significant, _p_ = 0.002. Interestingly,
 transmission type has no association with fuel consumption in this model.
 
-# Adding variables back to the parsimonious model (Model 4)
+## Adding variables back to the parsimonious model (Model 4)
 
 Of the remaining variables, quarter mile time (perhaps a proxy for several vehicle and tuning properties)
 and number of carburetors were the closest to significance in the previous models.
@@ -163,21 +156,16 @@ lrtest(fit4,fit2)
 vif(fit4)
 ```
 
-Model 4 has the best adjusted R^2^ of any considered thus far ([0.84)]). It also has
+Model 4 has the best adjusted R^2^ of any considered thus far, `r round(summary(fit4)$adj.r.squared, 2)`). It also has
 no difference by LR test from Model 2, which contained several more variables. The 
 variance inflation factors of Model 4 are the lowest of any model evaluated thus far.
 Model 4 will the basis for our final model.
 
-# Evaluation of Residuals
+## Residuals and Diagnostics
 
-The residual plot from Model 4 (Appendix [Figure 4][fig4]) suggests that it fits the data reasonably well. The
-Residuals vs Fitted panel shows that, as might be expected in such a small data set,
-the model does not fit as well where the data are sparse, i.e. for very low or very high 
-fuel consumption cars. Points 3, 17, and 18 have residuals that are 2 standard deviations
+The residual plot from Model 4 (Appendix [Figure 3][]) suggests that it fits the data reasonably well. The Residuals vs Fitted panel shows that, as might be expected in such a small data set, the model does not fit as well where the data are sparse, i.e. for very low or very high fuel consumption cars. Points 3, 17, and 18 have residuals that are 2 standard deviations
 from the regression line and have at least medium leverage. Point 17, in particular
 (see the Scale-Location plot), might be quite influential to the fit.
-
-# Diagnostics
 
 ```{r diagnostics}
 round(dfbetas(fit4), 3) ### 
@@ -189,7 +177,7 @@ round(dffits(fit4), 3)
 Point 17 does appear to be quite influential, as it has by far the largest Cook's 
 Distance and the largest `dfbeta` and `dffit` value of any point. We will evaluate the
 model with that point removed. After re-fitting the model with point 17 removed, 
-the updated residual plots (Appendix [Figure 5][fig 5] suggest a better fit. 
+the updated residual plots (Appendix [Figure 4][] suggest a better fit. 
 This will be our final model.
 
 ```{r remove17}
@@ -199,22 +187,16 @@ summary(fit5)
 vif(fit5)
 ```
 
-# Estimates from Final Model
+# Final Model
 
-We estimate that a car with a manual transmission gets 2.7(95% CI x to y) more miles per gallon 
+We estimate that a car with a manual transmission gets `r round(summary(fit5)$coef[2,1], 1)`(95% CI x to y) more miles per gallon 
 than a car with an automatic transmission after adjustment for vehicle weight, number of
 carburetors, and quarter mile time. 
 
 
 # Appendix
 
-## Figure 1 - MPG, by transmission type
-
-```{r bivplot, cache=TRUE, fig.height=2.5, fig.width=5}
-boxplot(mpg ~ trtype, data = mtcars2)
-```
-
-## Figure 2 - Bivariate Plots
+## Figure 1 - Bivariate Plots
 
 ```{r bivariateplots, cache = TRUE, fig.height = 6, fig.width = 7}
 data(mtcars)
@@ -231,14 +213,14 @@ par(mfrow = c(1,1))
 ```
   
   
-## Figure 3 code
+## Figure 2 code
 
 ```{r pairsplot, cache = TRUE, echo = TRUE, fig.height = 6, fig.width = 8}
 data(mtcars)
 p <- ggpairs(mtcars, columns = 2:11, lower = list(continuous = "smooth"), params = c(method = "loess"))
 ```
 
-## Figure 4 - Residual plots from Model 4
+## Figure 3 - Residual plots from Model 4
 
 ```{r resids, fig.height = 6, fig.width = 7}
 par(mfrow = c(2,2))
@@ -246,7 +228,7 @@ plot(fit4)
 par(mfrow = c(1,1))
 ```
 
-## Figure 5 - Residual plots from Final Model
+## Figure 4 - Residual plots from Final Model
 
 ```{r resids2, fig.height = 6, fig.width = 7}
 par(mfrow = c(2,2))
