@@ -1,10 +1,9 @@
 ---
-title: "Fuel Consumption with Automatic versus Manual Transmissions"
+title: "Fuel Consumption with Manual versus Automatic Transmissions"
 author: "T. Bennett"
 date: "August 23, 2015"
 output: pdf_document
 ---
-
 
 
 Executive Summary
@@ -15,19 +14,8 @@ carburetors, and quarter mile time.
 
 
 
-Data Processing
----------------
-
-```{r options, echo = FALSE}
-options(dplyr.max_print = 10)
-options(dplyr.min_print =  5)
-```
-
-  
-
-1) Loading packages
-
-```{r loadpackages, echo = TRUE, results="hide", message=FALSE}
+```{r setup, echo = FALSE, results="hide", message = FALSE, warning = FALSE}
+library(knitr)
 library(dplyr)
 library(ggplot2)
 library(stringr)
@@ -35,22 +23,29 @@ library(xtable)
 library(GGally)
 library(car)
 library(lmtest)
+
+options(dplyr.max_print = 10)
+options(dplyr.min_print =  5)
+opts_chunk$set(echo = FALSE, message = FALSE, error = FALSE, warning = FALSE, results = "hide", comment = NA)
 ```
 
+  
 
-2) Loading the raw data
 
-```{r dataload, cache=TRUE}
+```{r dataload, cache=TRUE, results = "hide"}
 ## load and inspect the data 
 data(mtcars)
 str(mtcars)
 glimpse(mtcars)
 ```
 
+Data Source
+-----------
 
 This analysis is based on the `mtcars` dataset included in the `datasets` package in base R. 
 It contains data on the 1973-74 models of 32 different automobiles including fuel consumption
-and 10 aspects of automobile design. Total 32 rows and 11 fields, no missing data.
+and 10 aspects of automobile design. This dataset (not shown) contains 32 rows and 11 fields
+without missing data.
 
 
   
@@ -267,6 +262,13 @@ Estimates from Final Model
 We estimate that a car with a manual transmission gets 2.7(95% CI x to y) more miles per gallon 
 than a car with an automatic transmission after adjustment for vehicle weight, number of
 carburetors, and quarter mile time. 
+
+
+
+Reference
+---------
+
+The code for this analysis can be found at [URL].
   
 
   

@@ -4,3 +4,7 @@ ggplot2
 stringr
 xtable
 GGally
+knitr
+car
+zoo
+lmtest
