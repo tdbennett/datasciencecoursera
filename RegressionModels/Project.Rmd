@@ -52,36 +52,26 @@ without missing data.
 Exploratory Data Analyses 
 -------------------------
 
-Miles per gallon is the primary outcome.
+Miles per gallon (`mpg`) is the primary outcome. Transmission type (`am`) is the primary predictor of interest. 13 of 32 have a manual transmission and 19 of 32 have a manual transmission.
 
-```{r eda1, cache=TRUE}
-with(mtcars, boxplot(mpg, main = "Miles per gallon, overall"))
-```
-
-```{r labeltrtype, results = "asis"}
+```{r labeltrtype}
 mtcars <- mtcars %>%
     mutate(trtype = factor(am, labels = c("Automatic", "Manual"))) %>%
     select(-am)
-           
-tab <- xtable(table(mtcars$trtype))
-tab
+
+tab <- matrix(table(mtcars$trtype))
 ```
 
-Transmission type is the primary predictor of interest. 13 of 32(`r 13/32`) have a manual transmission 
-and 19 of 32(`r 19/32`) have a manual transmission.
-
-```{r bivplot, cache=TRUE}
-boxplot(mpg ~ trtype, main = "MPG, by transmission type", data = mtcars)
-```
 
 A bivariate plot does suggest that manual transmissions are associated with better
-gas mileage. 
+gas mileage. See Appendix [Figure 1][fig1].
+
 ```{r ttest}
 res <- t.test(mpg ~ trtype, var.equal=FALSE, data = mtcars)
 ```
-A t-test of `mpg` using unequal variances bears that out: cars with automatic transmissions get `r res$estimate[1]` 
-miles per gallon and cars with manual transmissions get `r res$estimate[2]` miles per gallon,
-t-test _p_ = `r res$p.value`.
+A t-test of `mpg` using unequal variances bears that out: cars with automatic transmissions get `r round(res$estimate[1], 1)` 
+miles per gallon and cars with manual transmissions get `r round(res$estimate[2],1)` miles per gallon,
+t-test _p_ = `r round(res$p.value, 3)`.
 
 
 
@@ -90,30 +80,13 @@ Potential Confounders
   
 Several other variables might confound the Transmission Type - Mileage relationship. 
 Based on my working knowledge of automobile engines, any of the other 9 variables in 
-the `mtcars` dataset might be hypothesized to be important. The below bivariate plots 
-of the 9 variables against `mpg` suggest that any of them could reasonably 
-be a predictor. 
-```{r bivariateplots, cache = TRUE}
-par(mfrow = c(3,3))
-boxplot(mpg ~ cyl, main = "MPG, by # of Cylinders", data = mtcars, xlab = "Cylinders")
-with(mtcars, plot(disp, mpg, main = "MPG, by Displacement", xlab = "Displacement (cubic in.)"))
-with(mtcars, plot(hp, mpg, main = "MPG, by Horsepower", xlab = "Horsepower"))
-with(mtcars, plot(drat, mpg, main = "MPG, by Rear Axle ratio", xlab = "Rear Axle Ratio"))
-with(mtcars, plot(wt*1000, mpg, main = "MPG, by Vehicle Weight", xlab = "Weight (pounds)"))
-with(mtcars, plot(qsec, mpg, main = "MPG, by 1/4 mile time", xlab = "1/4 mile time (seconds)"))
-boxplot(mpg ~ gear, main = "MPG, by # of Forward Gears", data = mtcars, xlab = "Forward Gears")
-boxplot(mpg ~ carb, main = "MPG, by # of Carburetors", data = mtcars, xlab = "Carburetors")
-par(mfrow = c(1,1))
-```
+the `mtcars` dataset might be hypothesized to be important. The bivariate plots 
+of the 9 variables against `mpg` shown in Appendix [Figure 2][fig2] suggest that any 
+of them could reasonably be a predictor. 
 
 
 To avoid including two covariates that are either highly correlated themselves or highly correlated
-with the primary predictor of interest, I created the `pairs` plot below.
-```{r pairsplot, cache = TRUE}
-p <- ggpairs(mtcars, columns = 2:11, lower = list(continuous = "smooth"), params = c(method = "loess"))
-p
-```
-
+with the primary predictor of interest, I created a `pairs` plot (not shown, code in Appendix [Figure 3][fig3]).
 
 Number of cylinders, weight, and displacement are highly correlated (which makes sense, I suppose).
 I decided to include displacement and weight in the model selection process because 
@@ -264,11 +237,47 @@ than a car with an automatic transmission after adjustment for vehicle weight, n
 carburetors, and quarter mile time. 
 
 
+Appendix
+--------
+
+## Figure 1
+
+```{r bivplot, cache=TRUE, fig.height=3, fig.width=6}
+boxplot(mpg ~ trtype, main = "MPG, by transmission type", data = mtcars)
+```
+
+[fig1]: Project_files/figure-latex/bivplot-1.pdf "Figure 1"
+
+## Figure 2
+
+```{r bivariateplots, cache = TRUE}
+par(mfrow = c(3,3))
+boxplot(mpg ~ cyl, main = "MPG, by # of Cylinders", data = mtcars, xlab = "Cylinders")
+with(mtcars, plot(disp, mpg, main = "MPG, by Displacement", xlab = "Displacement (cubic in.)"))
+with(mtcars, plot(hp, mpg, main = "MPG, by Horsepower", xlab = "Horsepower"))
+with(mtcars, plot(drat, mpg, main = "MPG, by Rear Axle ratio", xlab = "Rear Axle Ratio"))
+with(mtcars, plot(wt*1000, mpg, main = "MPG, by Vehicle Weight", xlab = "Weight (pounds)"))
+with(mtcars, plot(qsec, mpg, main = "MPG, by 1/4 mile time", xlab = "1/4 mile time (seconds)"))
+boxplot(mpg ~ gear, main = "MPG, by # of Forward Gears", data = mtcars, xlab = "Forward Gears")
+boxplot(mpg ~ carb, main = "MPG, by # of Carburetors", data = mtcars, xlab = "Carburetors")
+par(mfrow = c(1,1))
+```
+
+[fig2]: Project_files/figure-latex/bivariateplots-1.pdf "Figure 2"
+
+## Figure 3 code
+
+```{r pairsplot, cache = TRUE, echo = TRUE}
+data(mtcars)
+p <- ggpairs(mtcars, columns = 2:11, lower = list(continuous = "smooth"), params = c(method = "loess"))
+```
+
+[fig3]: Project_files/figure-latex/pairsplot-1.pdf "Figure 3"
 
 Reference
 ---------
 
-The code for this analysis can be found at [URL].
+The code (Project.Rmd) for this analysis can be found [here](https://github.com/tdbennett/datasciencecoursera/RegressionModels).
   
 
   

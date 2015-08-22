@@ -1,11 +1,7 @@
 ### Regression Models
 
-"Regression Models" course project folder
+JHU DSS "Regression Models" course project folder
 
-----
 
-### Files
 
-* Lectures
-* LocalOnly
-* Projects
+
