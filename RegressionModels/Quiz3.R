@@ -3,26 +3,28 @@
 ## problem 1
 
 data(mtcars)
-fit <- lm(mpg ~ I(as.factor(cyl)) + wt, data = mtcars)
+fit <- lm(mpg ~ I(factor(cyl)) + wt, data = mtcars)
 summary(fit)
 
 
 ## problem 2
 
-e <- resid(fit)
-
-summary(fit)$sigma
-
-
+fit2 <- lm(mpg ~ I(factor(cyl)), data = mtcars)
+summary(fit2)
 
 
 ## problem 3
 
-data(mtcars)
-#summary(mtcars)
-
-fit3 <- lm(mpg ~ I(wt - mean(wt)), data = mtcars)  ### question asks re: average wt
+fit3 <- lm(mpg ~ I(factor(cyl)) + wt + wt * I(factor(cyl)), data = mtcars)
 summary(fit3)
+
+library(lmtest)
+lrtest(fit,fit3)
+
+## problem 4
+
+fit4 <- lm(mpg ~ I(wt * 0.5) + factor(cyl), data = mtcars)
+summary(fit4)
 
 newwt <- mean(mtcars$wt)
 
