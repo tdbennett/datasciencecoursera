@@ -26,28 +26,27 @@ lrtest(fit,fit3)
 fit4 <- lm(mpg ~ I(wt * 0.5) + factor(cyl), data = mtcars)
 summary(fit4)
 
-newwt <- mean(mtcars$wt)
-
-ans1 <- data.frame(predict(fit3, newdata = data.frame(wt = newwt), interval = "confidence"))
-
-
 
 
 ## problem 5
 
-data(mtcars)
-#summary(mtcars)
+x <- c(0.586, 0.166, -0.042, -0.614, 11.72)
+y <- c(0.549, -0.026, -0.127, -0.751, 1.344)
 
-fit2 <- lm(mpg ~ wt, data = mtcars)  ### need to make the call this way otherwise predict acts funny below
-summary(fit2)
+fit <- lm(y ~ x)
+hatvalues(fit)
+plot(fit)
 
-newwt <- data.frame(wt = seq(1, 5, by = 0.1))
-p1 = data.frame(predict(fit2, newdata = newwt, interval = ("confidence"))) ## confidence in regression line - very narrow
-p2 = data.frame(predict(fit2, newdata = newwt, interval = ("prediction"))) ## what I think of as a CI, CI of est x at a new y
-
+## I went with point 5
 
 
-## problem 9
 
-## R squared of fit2 is 0.75, see lect 6 slide 14, the ratio must be 0.25
+## problem 6
+
+x <- c(0.586, 0.166, -0.042, -0.614, 11.72)
+y <- c(0.549, -0.026, -0.127, -0.751, 1.344)
+
+fit <- lm(y ~ x)
+hatvalues(fit)
+dfbetas(fit)
 
