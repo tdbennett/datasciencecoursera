@@ -25,9 +25,11 @@ exp(logreg1$coeff)
 
 ## problem 4
 
-data(InspectSprays)
-
-
+data(InsectSprays)
+data <- data.frame(InsectSprays)
+relevel(data$spray, ref = "B")
+pois1 <- glm(count ~ spray, family="poisson", data = data)
+summary(pois1)
 
 ## problem 5
 
