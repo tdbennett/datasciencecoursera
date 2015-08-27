@@ -26,30 +26,32 @@ exp(logreg1$coeff)
 ## problem 4
 
 data(InsectSprays)
-data <- data.frame(InsectSprays)
-relevel(data$spray, ref = "B")
-pois1 <- glm(count ~ spray, family="poisson", data = data)
-summary(pois1)
+
+summary(glm(count ~ 
+               I(1 * (spray == 'A')) + I(1 * (spray == 'C')) + 
+               I(1 * (spray == 'D')) + I(1 * (spray == 'E')) +
+               I(1 * (spray == 'F'))
+           , data = InsectSprays, family = "poisson"))$coef
 
 ## problem 5
 
-x <- c(0.586, 0.166, -0.042, -0.614, 11.72)
-y <- c(0.549, -0.026, -0.127, -0.751, 1.344)
 
-fit <- lm(y ~ x)
-hatvalues(fit)
-plot(fit)
-
-## I went with point 5
 
 
 
 ## problem 6
 
-x <- c(0.586, 0.166, -0.042, -0.614, 11.72)
-y <- c(0.549, -0.026, -0.127, -0.751, 1.344)
+x <- -5:5
+y <- c(5.12, 3.93, 2.67, 1.87, 0.52, 0.08, 0.93, 2.05, 2.54, 3.87, 4.97)
 
-fit <- lm(y ~ x)
-hatvalues(fit)
-dfbetas(fit)
+knots <- 0
+splineTerms <- sapply(knots, function(knot) (x > knot) * (x - knot))
+xMat <- cbind(1, x, splineTerms)
+yhat <- predict(lm(y ~ xMat - 1))
+
+plot(x, y, frame = FALSE, pch = 21, bg = "lightblue", cex = 2)
+lines(x, yhat, col = "red", lwd = 2)
+
+fit <- lm(yhat ~ x, subset = (x > 0))
+summary(fit)
 
