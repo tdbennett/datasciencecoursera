@@ -76,7 +76,7 @@ testing <- read_csv("PracticalMachineLearning/data/pml-testing.csv")
   
 
 4) Exploring the raw data
-```{r explore1, echo = FALSE, results="hide", message=FALSE}
+```{r explore1, cache = TRUE, echo = FALSE, results="hide", message=FALSE}
 dim(training)
 dim(testing)
 
@@ -129,7 +129,7 @@ performance measure for the prediction model.
   
 
 7) Exploratory Data Analyses
-```{r edaplots}
+```{r edaplots, cache=TRUE}
 
 ### Belt variables
 training %>%
