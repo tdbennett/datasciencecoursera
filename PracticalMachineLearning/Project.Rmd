@@ -28,10 +28,8 @@ options(dplyr.min_print =  5)
 library(dplyr)
 library(caret)
 library(readr)
+library(magrittr)
 
-library(lubridate)
-library(ggplot2)
-library(stringr)
 library(htmlTable)
 ```
 
@@ -68,7 +66,7 @@ testdownloadtime
 
 3) Read the data into R
 
-```{r dataread, cache=TRUE}
+```{r dataread, cache=TRUE, message = FALSE, warning = FALSE}
 training <- read_csv("PracticalMachineLearning/data/pml-training.csv")
 testing <- read_csv("PracticalMachineLearning/data/pml-testing.csv")
 ```
@@ -77,49 +75,62 @@ testing <- read_csv("PracticalMachineLearning/data/pml-testing.csv")
   
   
 
-4) Exploring the raw data and initial cleaning
+4) Exploring the raw data
 ```{r explore1, echo = FALSE, results="hide", message=FALSE}
 dim(training)
 dim(testing)
+
 glimpse(training)
 names(training)
 head(training)
 tail(training)
 summary(training)  ### a number of the variables have substantial missing data
+```
 
+
+
+5) Remove columns with overwhelming amounts of missing data
+```{r select1, echo = FALSE, results = "hide", message = FALSE}
+
+### turning empty character strings into NA
+training[training==""] <- NA 
+testing[testing==""] <- NA 
 
 ### dropping the columns with lots (more than 19000/19622 total rows) of missing data
 training <- training[, sapply(training, function(x) sum(is.na(x))) < 19000]
+
+
+### amount of missing data in remaining columns - max 1 missing
+sapply(training, function(x) sum(is.na(x)))
+
+
+### explore data again
+glimpse(training)
 ```
 
   
   
   
 
-5) Select the necessary variables
-```{r extract, cache=TRUE}
+6) Cleaning userid and outcome
+```{r clean1, cache=TRUE}
 training %<>%
-     select()
-        id = REFNUM,
-        evtype = EVTYPE,
-        state.abb = STATE,
-        begindate = BGN_DATE,
-        enddate = END_DATE,
-        deaths = FATALITIES,
-        injuries = INJURIES,
-        propdmg = PROPDMG,
-        propdmgexp = PROPDMGEXP,
-        cropdmg = CROPDMG,
-        cropdmgexp = CROPDMGEXP)
+     mutate(
+        class = factor(classe),
+        user = factor(user_name))
+
+### Examining execution class by user
+table(training$class,training$user)
 ```
-
+Overall, the classes are reasonably balanced, so overall accuracy is likely an acceptable
+performance measure for the prediction model.
   
   
   
 
-6) Check for duplicate events
-```{r checking for duplicate events}
-summarize(stormdata, unique=n_distinct(id))
+7) Exploratory Data Analyses
+```{r edaplots}
+pairs(training)
 ```
 No duplicate events found.
 
