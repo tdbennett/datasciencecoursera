@@ -17,6 +17,7 @@ source course materials
 * Reproducible Research
 * Statistical Inference
 * Regression Models
+* Practical Machine Learning
 
 ----
 
