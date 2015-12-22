@@ -130,9 +130,28 @@ performance measure for the prediction model.
 
 7) Exploratory Data Analyses
 ```{r edaplots}
-pairs(training)
+
+### Belt variables
+training %>%
+     select(contains("belt"), class) %>%
+     pairs(.)
+
+### Arm variables
+training %>%
+     select(contains("_arm"), class) %>%
+     pairs(.)
+
+### Dumbbell variables
+training %>%
+     select(contains("dumbbell"), class) %>%
+     pairs(.)
+
+### Forearm variables
+training %>%
+     select(contains("forearm"), class) %>%
+     pairs(.)
 ```
-No duplicate events found.
+
 
   
   
