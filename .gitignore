@@ -6,3 +6,5 @@
 .Rproj.user
 *.rdb
 *.rdx
+PracticalMachineLearning/data/pml-testing.csv
+PracticalMachineLearning/data/pml-training.csv
