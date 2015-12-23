@@ -219,12 +219,29 @@ preobj <- training %<>%
   
 
 
-12) Testing RF models
+12) Testing tree models
 ```{r tree1, cache = TRUE}
 
+treefit <- train(x = training[,-49], y = training$class, 
+               preProcess = c("center", "scale"), 
+               method="rpart")
 
+print(treefit$finalModel)
 
-rffit <- train(x = training[,-49], y = training$class, preProcess = c("center", "scale"), method="rf")
+plot(treefit$finalModel, uniform=TRUE, 
+      main="Classification Tree")
+text(treefit$finalModel, use.n=TRUE, all=TRUE, cex=.8)
+
+predict(treefit,newdata=testing)
+
+```
+
+13) Testing RF models
+```{r rf1, cache = TRUE}
+rffit <- train(x = training[,-49], y = training$class, 
+               preProcess = c("center", "scale"), 
+               method="rf",
+               trControl = trainControl(number = 1))
 yesprint(modFit$finalModel)
 
 
