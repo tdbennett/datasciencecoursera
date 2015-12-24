@@ -72,8 +72,8 @@ testdownloadtime
 training <- read_csv("data/pml-training.csv")
 testing <- read_csv("data/pml-testing.csv")
 
-training <- read_csv("PracticalMachineLearning/data/pml-training.csv")  ## for console use
-testing <- read_csv("PracticalMachineLearning/data/pml-testing.csv")  ## for console use
+# training <- read_csv("PracticalMachineLearning/data/pml-training.csv")  ## for console use
+# testing <- read_csv("PracticalMachineLearning/data/pml-testing.csv")  ## for console use
 ```
 
   
@@ -237,9 +237,9 @@ only `gyros_forearm_z`.
 12) Testing LDA models
 ```{r lda1, cache=TRUE}
 
-ldafit <- train(class ~ ., data = training, preProcess = "scale", method="lda")
-plda <- predict(ldafit, testing)
-ldafit   ### 69% accuracy
+# ldafit <- train(class ~ ., data = training, preProcess = "scale", method="lda")
+# plda <- predict(ldafit, testing)
+# ldafit   ### 69% accuracy
 
 
 ```
@@ -247,10 +247,10 @@ ldafit   ### 69% accuracy
 13) Testing tree models
 ```{r tree1, cache = TRUE}
 
-treefit <- train(x = training[,-49], y = training$class, 
-               preProcess = "scale", 
-               method="rpart")
-treefit   ### 50% accuracy
+# treefit <- train(x = training[,-49], y = training$class, 
+#                preProcess = "scale", 
+#                method="rpart")
+# treefit   ### 50% accuracy
 
 ```
 
@@ -266,7 +266,7 @@ rffit <- train(x = training[,-49],
                trControl = control)
 rffit
 
-yesprint(rffit$finalModel)
+#yesprint(rffit$finalModel)
 
 
 
