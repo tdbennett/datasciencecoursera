@@ -6,14 +6,12 @@ output: html_document
 
 
 
-Synopsis
---------
+### Synopsis
 
+Using a random forest model and 10-fold cross-validation, we can predict the quality
+of the dumbbell lift exercise with >99% accuracy. The estimated out-of-sample
+accuracy is 100%, but that seems unlikely to hold in all cases.
 
-
-
-Options and set seed
----------------
 
 ```{r options, echo = FALSE}
 options(dplyr.max_print = 10)
@@ -78,7 +76,6 @@ testing <- read_csv("data/pml-testing.csv")
   
   
 
-### Exploring the raw data
 ```{r explore1, echo = FALSE, results="hide", message=FALSE}
 dim(training)
 dim(testing)
@@ -174,10 +171,10 @@ training %>%
      select(contains("belt"), class) %>%
      pairs(.)
 
-### Arm variables
-training %>%
-     select(contains("_arm"), class) %>%
-     pairs(.)
+### Arm variables - not shown, fewer apparent potential predictors
+# training %>%
+#      select(contains("_arm"), class) %>%
+#      pairs(.)
 
 ### Dumbbell variables
 training %>%
@@ -190,6 +187,7 @@ training %>%
      pairs(.)
 ```
 
+On gross inspection, `roll_belt`, `yaw_belt`, and the `accel_belt` components appear to be potentially useful predictors.
 
 
 ### Looking for correlation among predictors and trimming predictors
@@ -216,7 +214,7 @@ only `gyros_forearm_z`.
 
   
 
-### Testing a LDA model
+### Fitting a LDA model
 ```{r lda1, cache=TRUE, results = "hide"}
 
 ldafit <- train(class ~ ., data = training, preProcess = "scale", method="lda")
@@ -226,9 +224,9 @@ ldafit <- train(class ~ ., data = training, preProcess = "scale", method="lda")
 ### LDA model accuracy
 ```{r lda2}
 
-ldafit   ### 69% accuracy
+ldafit   ### 70% accuracy
 ```
-
+The LDA model fits quickly, but unfortunately does not predict well in-sample.
 
 
 
@@ -241,9 +239,9 @@ treefit <- train(class ~ ., data = training, preProcess = "scale", method="rpart
 ### Tree model accuracy
 ```{r tree2}
 
-treefit   ### 69% accuracy
+treefit   ### 51% accuracy
 ```
-
+A basic classification tree is even worse.
 
 
 
@@ -252,13 +250,15 @@ treefit   ### 69% accuracy
 
 control <- trainControl(method = "cv", number = 10)
 
-rffit <- train(x = training[,-49], 
+noy <- training[,-49]
+
+rffit <- train(x = noy, 
                y = training$class, 
                preProcess = "scale", 
                method="rf",
                trControl = control)
 ```
-
+After pre-processing by scaling all of the continuous variables, I fit a random forest model with 10-fold cross-validation.
 
 
 
@@ -266,9 +266,10 @@ rffit <- train(x = training[,-49],
 ```{r rf2, cache = TRUE, message = FALSE}
 rffit
 
+rffit$finalModel
 
-imp <- varImp(rffit)
 plot(varImp(rffit), top = 20)
 ```
 
+This model has excellent accuracy (100% in-sample and estimated 100% out of sample). `roll_belt` and `accel_belt_z` were 2 of the 3 most important variables in the model, as the pairs plots suggested.
 
