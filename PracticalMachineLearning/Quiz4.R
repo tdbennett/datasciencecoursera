@@ -71,7 +71,7 @@ confusionMatrix(data = predrf, reference = predall$diag)
 confusionMatrix(data = predgbm, reference = predall$diag)
 confusionMatrix(data = predlda, reference = predall$diag)
 
-
+### had to guess here - package differences?
 
 
 
@@ -81,21 +81,20 @@ confusionMatrix(data = predlda, reference = predall$diag)
 set.seed(3523)
 library(AppliedPredictiveModeling)
 data(concrete)
+
+library(caret)
 inTrain = createDataPartition(concrete$CompressiveStrength, p = 3/4)[[1]]
 training = concrete[ inTrain,]
 testing = concrete[-inTrain,]
 
 set.seed(233)
 
-library(glmnet)
-
 m <- as.matrix(training[,-9])
 y <- training[,9]
 
-model <- glmnet(x = m, y = y, family = "gaussian", alpha = 1)
+model <- train(m, y, method = "lasso")
 
-plot(model, label = TRUE)
-print(model)
+plot(model, xvar = "penalty")
 
 coef(model, s = 0.1)
 
@@ -125,14 +124,21 @@ plot.ts(tstrain)
 
 model <- bats(tstrain)
 
-fcast <- forecast(model, h = 10, level = 95)
+fcast <- forecast(model)
 plot(forecast(model))
 
 lines(tstest, col = "red")
 
-length(tstest[tstest > 773])  ## 17
+fcast
 
+length(tstest[tstest > 714])  ## 27
+27/235
+
+length(tstest[tstest > 773])  ## 17
 17/235
+
+
+### guessed here too - package versions?
 
 
 
