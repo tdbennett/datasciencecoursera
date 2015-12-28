@@ -68,8 +68,9 @@ testdownloadtime
 training <- read_csv("data/pml-training.csv")
 testing <- read_csv("data/pml-testing.csv")
 
-# training <- read_csv("PracticalMachineLearning/data/pml-training.csv")  ## for console use
-# testing <- read_csv("PracticalMachineLearning/data/pml-testing.csv")  ## for console use
+### the below are for console use only
+# training <- read_csv("PracticalMachineLearning/data/pml-training.csv")
+# testing <- read_csv("PracticalMachineLearning/data/pml-testing.csv")
 ```
 
   
@@ -208,7 +209,7 @@ training %<>%
 testing %<>%
      dplyr::select(-accel_belt_y, -accel_belt_z, -gyros_arm_y, -gyros_forearm_z)
 ```
-Many predictors are highly correlated (r > 0.9). To simply the prediction process and improve interpretability, 
+Many predictors are highly correlated (r > 0.9). To simply the prediction process and improve interpretability, I excluded the following variables.
 In particular, `total_accel_belt` is highly correlated with `accel_belt_y` and `accel_belt_z`, but not with `accel_belt_x`, so I excluded the `y` and `z` variables and kept `total` and `x`. `gyros_arm_x` and `gyros_arm_y` are highly correlated, so I kept `x`. `gyros_dumbbell_x` and `gyros_dumbbell_z` and `gyros_forearm_z` were all highly correlated, so I kept
 only `gyros_forearm_z`.
 
@@ -244,19 +245,30 @@ treefit   ### 51% accuracy
 A basic classification tree is even worse.
 
 
+### Pre-processing for RF model
+```{r prerf, cache = TRUE, warning = FALSE, message = FALSE}
+
+preProcValues <- preProcess(training, method = "scale")
+trainproc <- predict(preProcValues, training)
+testproc <- predict(preProcValues, testing)
+```
+
 
 ### Testing a RF model
 ```{r rf1, cache = TRUE, warning = FALSE, message = FALSE}
 
 control <- trainControl(method = "cv", number = 10)
 
-noy <- training[,-49]
+noy <- trainproc[,-49]
+
+outcome <- training$class
 
 rffit <- train(x = noy, 
-               y = training$class, 
-               preProcess = "scale", 
+               y = outcome, 
                method="rf",
-               trControl = control)
+               trControl = control,
+               tuneGrid = expand.grid(.mtry = c(2:4)),
+               prox = TRUE)
 ```
 After pre-processing by scaling all of the continuous variables, I fit a random forest model with 10-fold cross-validation.
 
@@ -271,5 +283,20 @@ rffit$finalModel
 plot(varImp(rffit), top = 20)
 ```
 
-This model has excellent accuracy (100% in-sample and estimated 100% out of sample). `roll_belt` and `accel_belt_z` were 2 of the 3 most important variables in the model, as the pairs plots suggested.
+This model has excellent accuracy, with an in-sample accuracy of 99.5% and an estimated out of sample error rate of 0.43%. `roll_belt` is the most important variable in the model, as the pairs plot suggested.
+
+
+
+### Predictions
+```{r predict1, cache = TRUE}
+identical(names(noy),names(testproc))
+```
+
+```{r test}
+
+# testresults <- predict(rffit, newdata = testproc)
+# testresults
+# 
+# testchar <- as.character(testresults)
+```
 
