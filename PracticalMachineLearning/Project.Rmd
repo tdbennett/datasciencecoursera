@@ -266,9 +266,7 @@ outcome <- training$class
 rffit <- train(x = noy, 
                y = outcome, 
                method="rf",
-               trControl = control,
-               tuneGrid = expand.grid(.mtry = c(2:4)),
-               prox = TRUE)
+               trControl = control)
 ```
 After pre-processing by scaling all of the continuous variables, I fit a random forest model with 10-fold cross-validation.
 
@@ -283,7 +281,7 @@ rffit$finalModel
 plot(varImp(rffit), top = 20)
 ```
 
-This model has excellent accuracy, with an in-sample accuracy of 99.5% and an estimated out of sample error rate of 0.43%. `roll_belt` is the most important variable in the model, as the pairs plot suggested.
+This model has excellent accuracy, with an in-sample accuracy of 99.95% and an estimated out of sample error rate of 0%. That seems potentially overfit. `roll_belt` is the most important variable in the model, as the pairs plot suggested.
 
 
 
@@ -291,6 +289,7 @@ This model has excellent accuracy, with an in-sample accuracy of 99.5% and an es
 ```{r predict1, cache = TRUE}
 identical(names(noy),names(testproc))
 ```
+I cannot figure out why these have different columns. Everything, including the below code chunk, will run in the console, and that work generated the 20 predicted classes for the other part of the project. For some reason, it won't run in `knitr`. 
 
 ```{r test}
 
