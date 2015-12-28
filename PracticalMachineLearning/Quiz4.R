@@ -78,93 +78,84 @@ confusionMatrix(data = predlda, reference = predall$diag)
 ## Question 3
 
 
-library(dplyr)
-library(caret)
-library(pgmm)
-data(olive)
-olive = olive[,-1]
+set.seed(3523)
+library(AppliedPredictiveModeling)
+data(concrete)
+inTrain = createDataPartition(concrete$CompressiveStrength, p = 3/4)[[1]]
+training = concrete[ inTrain,]
+testing = concrete[-inTrain,]
 
+set.seed(233)
 
+library(glmnet)
 
-treefit <- train(Area ~ ., data = olive, method="rpart")
-plot(treefit$finalModel, uniform = TRUE)
-text(treefit$finalModel, use.n = TRUE, all = TRUE, cex = 1)
+m <- as.matrix(training[,-9])
+y <- training[,9]
 
+model <- glmnet(x = m, y = y, family = "gaussian", alpha = 1)
 
-newdata = as.data.frame(t(colMeans(olive)))
-predict(treefit, newdata = newdata)
+plot(model, label = TRUE)
+print(model)
+
+coef(model, s = 0.1)
 
 
 
 
 ### Question 4
 
+library(readr)
 
-library(dplyr)
-library(caret)
-library(ElemStatLearn)
-library(magrittr)
-data(SAheart)
-set.seed(8484)
-train = sample(1:dim(SAheart)[1],size=dim(SAheart)[1]/2,replace=F)
+## Download the data 
+dataurl <- "https://d396qusza40orc.cloudfront.net/predmachlearn/gaData.csv"
+download.file(dataurl, destfile = "PracticalMachineLearning/data/quiz4q4.csv")
 
-SAheart %<>% 
-     mutate(chd = factor(chd, levels = c(0,1), labels = c("no", "yes")))
+library(lubridate)  # For year() function below
 
-trainSA = SAheart[train,]
-testSA = SAheart[-train,]
+dat = read_csv("PracticalMachineLearning/data/quiz4q4.csv")
 
-set.seed(13234)
+training = dat[year(dat$date) < 2012,]
+testing = dat[(year(dat$date)) > 2011,]
+tstrain = ts(training$visitsTumblr)
+tstest = ts(testing$visitsTumblr)
 
-model <- train(chd ~ 
-               age + alcohol + obesity + tobacco + typea + ldl, 
-               method = "glm", 
-               family = "binomial", 
-               data = trainSA)
-model
+library(forecast)
 
-trainprobs <- predict.train(model, newdata = trainSA, type = "prob")
-testprobs <- predict.train(model, newdata = testSA, type = "prob")
+plot.ts(tstrain)
 
-predictions <- predict(model, newdata = testSA)
-confusionMatrix(predictions, testSA$chd)
+model <- bats(tstrain)
 
-predictionstrain <- predict(model, newdata = trainSA)
-confusionMatrix(predictionstrain, trainSA$chd)
+fcast <- forecast(model, h = 10, level = 95)
+plot(forecast(model))
 
+lines(tstest, col = "red")
 
-# missClass = function(values,prediction)
-#                {sum(((prediction > 0.5)*1) != values)/length(values)
-# }
-# 
-# missClass(trainSA$chd,trainprobs$yes)
-# missClass(testSA$chd,testprobs$yes)
+length(tstest[tstest > 773])  ## 17
 
+17/235
 
 
 
 
 ### Question 5
 
-library(ElemStatLearn)
-data(vowel.train)
-data(vowel.test) 
+set.seed(3523)
+library(AppliedPredictiveModeling)
+data(concrete)
 
-library(dplyr)
 library(caret)
+inTrain = createDataPartition(concrete$CompressiveStrength, p = 3/4)[[1]]
+training = concrete[inTrain,]
+testing = concrete[-inTrain,]
 
-test <- as.data.frame(vowel.test)
-train <- as.data.frame(vowel.train)
+set.seed(325)
 
-test %<>% 
-     mutate(factory = factor(y))
+library(e1071)
 
-train %<>% 
-     mutate(factory = factor(y))
+model <- svm(CompressiveStrength ~ ., data = training)
 
-set.seed(33883)
+preds <- predict(model, newdata = testing)
 
-model <- train(factory ~ ., data = train[,-1], method = "rf", trControl = trainControl(method = "oob"))
+sqrt(sum((preds - testing$CompressiveStrength)^2))
 
-varImp(model)
-plot(varImp(model))
+
