@@ -98,6 +98,8 @@ plot(model, xvar = "penalty")
 
 coef(model, s = 0.1)
 
+## cement
+
 
 
 
@@ -138,7 +140,7 @@ length(tstest[tstest > 773])  ## 17
 17/235
 
 
-### guessed here too - package versions?
+### guessed here too - package versions? - wrong
 
 
 
@@ -162,6 +164,6 @@ model <- svm(CompressiveStrength ~ ., data = training)
 
 preds <- predict(model, newdata = testing)
 
-sqrt(sum((preds - testing$CompressiveStrength)^2))
+sqrt(sum((preds - testing$CompressiveStrength)^2)/length(preds))  ## RMSE
 
 
