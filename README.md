@@ -3,8 +3,10 @@
 TB Projects from the Data Science Specialization 
 offered on Coursera by the JHU SOPH
 
-Work by Tell Bennett. See the CourseraDSScourses repo cloned from github/bcaffo for
+Work by Tell Bennett. See the CourseraDSScourses repo cloned from github/DataScienceSpecialization/courses for
 source course materials
+
+
 
 ----
 
@@ -18,6 +20,9 @@ source course materials
 * Statistical Inference
 * Regression Models
 * Practical Machine Learning
+* Developing Data Products
+     * For `Developing Data Products` source materials and work, see the `DSSDataProducts` repo
+
 
 ----
 
